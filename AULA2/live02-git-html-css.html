@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Live 02 — Construa, Versione e Publique</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:       #080a0d;
+    --surface:  #0f1218;
+    --surface2: #161b24;
+    --border:   #1e2530;
+    --border2:  #2a3444;
+    --accent:   #00e5a0;
+    --blue:     #4a9eff;
+    --amber:    #f59e0b;
+    --red:      #ef4444;
+    --purple:   #a78bfa;
+    --orange:   #fb923c;
+    --text:     #dde6f0;
+    --muted:    #5d7290;
+    --mono:     'Space Mono', monospace;
+    --sans:     'Syne', sans-serif;
+  }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg); color: var(--text);
+    font-family: var(--sans); line-height: 1.65; overflow-x: hidden;
+  }
+  body::before {
+    content: ''; position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,229,160,.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,229,160,.02) 1px, transparent 1px);
+    background-size: 48px 48px; pointer-events: none; z-index: 0;
+  }
+  .wrap { max-width: 940px; margin: 0 auto; padding: 0 24px; position: relative; }
+
+  /* ── Header ── */
+  header { padding: 64px 0 52px; border-bottom: 1px solid var(--border); }
+  .kicker {
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+    letter-spacing: .14em; color: var(--accent);
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(0,229,160,.2); background: rgba(0,229,160,.06);
+    padding: 4px 12px; border-radius: 2px; margin-bottom: 22px;
+  }
+  h1 { font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; line-height: 1.1; letter-spacing: -.02em; }
+  h1 em { color: var(--accent); font-style: normal; }
+  .sub { font-family: var(--mono); font-size: 13px; color: var(--muted); margin-top: 14px; }
+
+  /* ── Nav ── */
+  nav {
+    position: sticky; top: 0; z-index: 9999;
+    background: rgba(8,10,13,.97); backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--border);
+    pointer-events: all;
+  }
+  .nav-scroll { display: flex; overflow-x: auto; scrollbar-width: none; }
+  .nav-scroll::-webkit-scrollbar { display: none; }
+  .tab {
+    flex-shrink: 0; background: none; border: none;
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .07em;
+    color: var(--muted); padding: 15px 18px;
+    border-bottom: 2px solid transparent; cursor: pointer;
+    transition: color .2s, border-color .2s;
+    position: relative; z-index: 1; pointer-events: all;
+    -webkit-user-select: none; user-select: none;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  /* ── Prev / Next navigation ── */
+  .page-nav {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 36px 0 0; margin-top: 40px;
+    border-top: 1px solid var(--border); gap: 12px;
+  }
+  .nav-btn {
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em;
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--muted); padding: 11px 20px; border-radius: 3px;
+    cursor: pointer; transition: all .2s; display: flex; align-items: center; gap: 8px;
+  }
+  .nav-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .nav-btn:disabled { opacity: .25; cursor: not-allowed; pointer-events: none; }
+  .nav-btn.next { background: rgba(0,229,160,.06); border-color: rgba(0,229,160,.3); color: var(--accent); }
+  .nav-btn.next:hover { background: rgba(0,229,160,.12); border-color: var(--accent); }
+  .nav-pos { font-family: var(--mono); font-size: 10px; color: var(--muted); letter-spacing: .05em; }
+
+  /* ── Sections ── */
+  .section { padding: 52px 0; border-bottom: 1px solid var(--border); display: none; }
+  .section.active { display: block; }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .section.active > * { animation: fadeUp .3s ease both; }
+  .section.active > *:nth-child(2) { animation-delay: .05s; }
+  .section.active > *:nth-child(3) { animation-delay: .10s; }
+  .section.active > *:nth-child(4) { animation-delay: .15s; }
+  .section.active > *:nth-child(5) { animation-delay: .20s; }
+  .section.active > *:nth-child(6) { animation-delay: .25s; }
+
+  .sec-label {
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+    letter-spacing: .15em; color: var(--accent);
+    display: flex; align-items: center; gap: 12px; margin-bottom: 30px;
+  }
+  .sec-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+  h2 { font-size: 1.55rem; font-weight: 800; margin-bottom: 10px; }
+  h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 10px; color: var(--text); }
+  h4 { font-family: var(--mono); font-size: .78rem; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); margin-bottom: 10px; }
+  p  { color: #8da0b8; font-size: .93rem; margin-bottom: 12px; }
+  strong { color: var(--text); }
+  code { font-family: var(--mono); font-size: .82em; color: var(--accent); background: rgba(0,229,160,.07); padding: 2px 6px; border-radius: 2px; }
+  ul, ol { padding-left: 20px; color: #8da0b8; font-size: .93rem; }
+  li { margin-bottom: 6px; }
+
+  /* ── Grid ── */
+  .grid { display: grid; gap: 14px; }
+  .grid-2 { grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+  .grid-3 { grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); }
+  .grid-4 { grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 5px; padding: 20px 22px;
+    transition: border-color .2s, transform .2s;
+  }
+  .card:hover { border-color: var(--border2); transform: translateY(-2px); }
+  .card-icon { font-size: 1.5rem; margin-bottom: 10px; }
+  .card-accent { border-top: 2px solid var(--accent); }
+  .card-blue   { border-top: 2px solid var(--blue); }
+  .card-orange { border-top: 2px solid var(--orange); }
+  .card-amber  { border-top: 2px solid var(--amber); }
+
+  /* ── Callouts ── */
+  .callout { background: rgba(74,158,255,.07); border: 1px solid rgba(74,158,255,.22); border-left: 3px solid var(--blue); color: #93c5fd; border-radius: 4px; padding: 14px 18px; margin: 18px 0; font-size: .88rem; }
+  .warn    { background: rgba(245,158,11,.07); border: 1px solid rgba(245,158,11,.22); border-left: 3px solid var(--amber); color: #fcd34d; border-radius: 4px; padding: 14px 18px; margin: 18px 0; font-size: .88rem; }
+  .tip     { background: rgba(0,229,160,.06); border: 1px solid rgba(0,229,160,.2); border-left: 3px solid var(--accent); color: #6ee7b7; border-radius: 4px; padding: 14px 18px; margin: 18px 0; font-size: .88rem; }
+  .danger  { background: rgba(239,68,68,.07); border: 1px solid rgba(239,68,68,.22); border-left: 3px solid var(--red); color: #fca5a5; border-radius: 4px; padding: 14px 18px; margin: 18px 0; font-size: .88rem; }
+
+  /* ── Code Block ── */
+  .code {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-left: 3px solid var(--blue); border-radius: 4px;
+    padding: 14px 18px; margin: 14px 0;
+    font-family: var(--mono); font-size: 13px; color: #93c5fd;
+    overflow-x: auto; white-space: pre; line-height: 1.7;
+  }
+  .code .c-comment { color: var(--muted); }
+  .code .c-cmd     { color: var(--accent); }
+  .code .c-flag    { color: var(--orange); }
+  .code .c-str     { color: var(--amber); }
+  .code .c-ok      { color: var(--accent); }
+  .code .c-err     { color: var(--red); }
+
+  /* ── Flow ── */
+  .flow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; margin: 24px 0; }
+  .flow-step {
+    background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 4px; padding: 12px 16px; text-align: center;
+    font-family: var(--mono); font-size: 11px; min-width: 90px;
+    transition: border-color .3s;
+  }
+  .flow-step span { display: block; font-size: 1.4rem; margin-bottom: 5px; }
+  .flow-arrow { color: var(--muted); font-size: 1.2rem; padding: 0 4px; flex-shrink: 0; }
+
+  /* ── Table ── */
+  .tbl { width: 100%; border-collapse: collapse; font-size: .83rem; margin: 16px 0; }
+  .tbl th { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); padding: 8px 12px; text-align: left; border-bottom: 1px solid var(--border2); }
+  .tbl td { padding: 8px 12px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .tbl tr:hover td { background: rgba(255,255,255,.02); }
+  .tbl code { font-size: .8rem; }
+
+  /* ── Badges ── */
+  .badge { display: inline-block; font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 2px; }
+  .badge-git    { background: rgba(251,146,60,.15); color: var(--orange); }
+  .badge-html   { background: rgba(245,158,11,.15); color: var(--amber); }
+  .badge-css    { background: rgba(74,158,255,.15);  color: var(--blue); }
+  .badge-linux  { background: rgba(167,139,250,.15); color: var(--purple); }
+  .badge-pages  { background: rgba(0,229,160,.12);   color: var(--accent); }
+
+  /* ── Git States Animation ── */
+  .git-states { display: grid; grid-template-columns: 1fr auto 1fr auto 1fr auto 1fr; align-items: center; gap: 0; margin: 28px 0; position: relative; overflow-x: auto; }
+  .git-box {
+    background: var(--surface); border: 2px solid var(--border2);
+    border-radius: 6px; padding: 18px 12px; text-align: center;
+    transition: all .5s ease; min-width: 110px;
+  }
+  .git-box h4 { color: var(--muted); font-size: .7rem; margin-bottom: 6px; transition: color .5s; }
+  .git-box .box-icon { font-size: 1.8rem; display: block; margin-bottom: 6px; }
+  .git-box .box-name { font-family: var(--mono); font-size: .75rem; color: var(--muted); transition: color .5s; }
+  .git-box.active { border-color: var(--accent); background: rgba(0,229,160,.05); }
+  .git-box.active h4 { color: var(--accent); }
+  .git-box.active .box-name { color: var(--accent); }
+  .git-box.remote { border-style: dashed; }
+  .git-box.remote.active { border-color: var(--orange); background: rgba(251,146,60,.05); }
+  .git-box.remote.active h4 { color: var(--orange); }
+  .git-box.remote.active .box-name { color: var(--orange); }
+
+  .git-arrow {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px; padding: 0 8px; min-width: 80px;
+  }
+  .git-arrow-line {
+    display: flex; align-items: center; gap: 4px;
+    font-family: var(--mono); font-size: 10px; color: var(--muted);
+    transition: color .4s; white-space: nowrap;
+  }
+  .git-arrow-line.up { color: var(--muted); }
+  .git-arrow-line.down { color: var(--muted); }
+  .git-arrow-line.active-up { color: var(--accent); }
+  .git-arrow-line.active-down { color: var(--blue); }
+  .git-arrow-line.active-push { color: var(--orange); }
+  .git-arrow-line.active-pull { color: var(--purple); }
+  @keyframes slideRight {
+    0%  { transform: translateX(-6px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+  @keyframes slideLeft {
+    0%  { transform: translateX(6px); opacity: 0; }
+    100% { transform: translateX(0); opacity: 1; }
+  }
+  .git-arrow-line.active-up  { animation: slideRight .4s ease; }
+  .git-arrow-line.active-down { animation: slideLeft .4s ease; }
+
+  .git-ctrl { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+  .git-btn {
+    font-family: var(--mono); font-size: 11px;
+    background: var(--surface2); border: 1px solid var(--border2);
+    color: var(--muted); padding: 7px 14px; border-radius: 3px;
+    cursor: pointer; transition: all .2s;
+  }
+  .git-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .git-btn.active-btn { background: rgba(0,229,160,.1); border-color: var(--accent); color: var(--accent); }
+  .git-explain {
+    background: var(--surface2); border: 1px solid var(--border2); border-left: 3px solid var(--accent);
+    border-radius: 4px; padding: 14px 18px; font-size: .85rem; min-height: 54px;
+    color: #8da0b8; transition: all .3s; margin-top: 10px;
+  }
+
+  /* ── Terminal Simulator ── */
+  .term-wrap { background: #0a0d12; border: 1px solid var(--border2); border-radius: 6px; overflow: hidden; margin: 20px 0; }
+  .term-bar { background: var(--surface2); padding: 10px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--border); }
+  .term-dot { width: 12px; height: 12px; border-radius: 50%; }
+  .term-dot.r { background: #ef4444; } .term-dot.y { background: #f59e0b; } .term-dot.g { background: #22c55e; }
+  .term-title { font-family: var(--mono); font-size: 11px; color: var(--muted); margin-left: 8px; }
+  .term-body { padding: 18px; min-height: 180px; max-height: 280px; overflow-y: auto; }
+  .term-line { font-family: var(--mono); font-size: 12.5px; line-height: 1.8; }
+  .term-line .prompt { color: var(--accent); }
+  .term-line .cmd    { color: var(--text); }
+  .term-line .output { color: var(--muted); display: block; padding-left: 0; }
+  .term-line .out-ok  { color: #6ee7b7; display: block; }
+  .term-line .out-err { color: #fca5a5; display: block; }
+  .term-line .out-warn { color: #fcd34d; display: block; }
+  .term-input-row { display: flex; align-items: center; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); }
+  .term-input-row .prompt { font-family: var(--mono); font-size: 12px; color: var(--accent); white-space: nowrap; }
+  .term-input {
+    flex: 1; background: transparent; border: none; outline: none;
+    font-family: var(--mono); font-size: 12px; color: var(--text); caret-color: var(--accent);
+  }
+  .term-cmd-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px; }
+  .tcmd {
+    font-family: var(--mono); font-size: 11px;
+    background: var(--surface2); border: 1px solid var(--border2); color: var(--muted);
+    padding: 4px 10px; border-radius: 2px; cursor: pointer; transition: all .15s;
+  }
+  .tcmd:hover { color: var(--accent); border-color: var(--accent); }
+
+  /* ── Box Model ── */
+  .box-model-wrap { display: flex; align-items: center; justify-content: center; gap: 40px; flex-wrap: wrap; margin: 24px 0; }
+  .bm-diagram { position: relative; }
+  .bm-layer {
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 4px; transition: all .3s;
+  }
+  .bm-margin  { background: rgba(251,146,60,.15); border: 2px dashed rgba(251,146,60,.4); padding: 20px; border-radius: 4px; }
+  .bm-border  { background: rgba(167,139,250,.2); border: 2px solid rgba(167,139,250,.5); padding: 16px; border-radius: 3px; }
+  .bm-padding { background: rgba(74,158,255,.15); border: 2px dashed rgba(74,158,255,.4); padding: 16px; border-radius: 2px; }
+  .bm-content { background: rgba(0,229,160,.15); border: 2px solid rgba(0,229,160,.4); padding: 14px 20px; border-radius: 2px; font-family: var(--mono); font-size: 11px; color: var(--accent); text-align: center; min-width: 80px; }
+  .bm-label { font-family: var(--mono); font-size: 10px; color: var(--muted); text-align: center; margin-top: 6px; }
+  .bm-legend { display: flex; flex-direction: column; gap: 10px; }
+  .bm-leg-item { display: flex; align-items: center; gap: 10px; font-size: .82rem; color: #8da0b8; }
+  .bm-leg-dot { width: 14px; height: 14px; border-radius: 2px; flex-shrink: 0; }
+
+  /* ── HTML Preview ── */
+  .html-demo { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 18px 0; }
+  .html-pane { background: var(--surface2); border: 1px solid var(--border2); border-radius: 4px; overflow: hidden; }
+  .pane-label { font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); padding: 8px 14px; border-bottom: 1px solid var(--border); background: var(--surface); }
+  .pane-code { padding: 14px; font-family: var(--mono); font-size: 12px; white-space: pre; overflow-x: auto; line-height: 1.7; }
+  .ht { color: var(--orange); }
+  .ha { color: var(--amber); }
+  .hv { color: var(--accent); }
+  .hs { color: #8da0b8; }
+  .pane-preview { padding: 18px; background: #fff; color: #111; font-family: Georgia, serif; font-size: 13px; }
+  .pane-preview h1 { font-size: 18px; margin-bottom: 6px; color: #111; }
+  .pane-preview h2 { font-size: 15px; margin-bottom: 5px; color: #222; }
+  .pane-preview p  { margin-bottom: 8px; color: #333; font-size: 13px; }
+  .pane-preview a  { color: #0066cc; }
+  .pane-preview .demo-card { background: #f5f5f5; border-radius: 6px; padding: 12px; border: 1px solid #ddd; }
+
+  /* ── Checklist ── */
+  .ck-list { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
+  .ck { display: flex; align-items: flex-start; gap: 10px; cursor: pointer; font-size: .88rem; color: var(--muted); padding: 6px 0; border-bottom: 1px solid rgba(30,37,48,.5); transition: color .2s; }
+  .ck:hover { color: var(--text); }
+  .ck input { display: none; }
+  .ck-box {
+    width: 18px; height: 18px; flex-shrink: 0; margin-top: 2px;
+    border: 1px solid var(--border2); border-radius: 2px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; transition: all .15s;
+  }
+  .ck input:checked ~ .ck-box { background: var(--accent); border-color: var(--accent); color: #000; }
+  .ck input:checked ~ .ck-text { color: var(--muted); text-decoration: line-through; }
+  .prog-wrap { background: var(--border); border-radius: 2px; height: 5px; margin: 18px 0 6px; }
+  .prog-bar  { background: var(--accent); height: 5px; border-radius: 2px; width: 0%; transition: width .4s; }
+  .prog-lbl  { font-family: var(--mono); font-size: 11px; color: var(--muted); text-align: right; }
+
+  /* ── Role badges ── */
+  .role { display: inline-block; font-family: var(--mono); font-size: 10px; padding: 2px 8px; border-radius: 2px; margin-right: 6px; }
+  .role-lider { background: rgba(0,229,160,.12); color: var(--accent); }
+  .role-colab { background: rgba(74,158,255,.12); color: var(--blue); }
+  .role-ambos { background: rgba(167,139,250,.12); color: var(--purple); }
+
+  /* ── Steps ── */
+  .step-list { display: flex; flex-direction: column; gap: 0; margin: 20px 0; }
+  .step {
+    display: flex; gap: 18px; padding: 18px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .step-num {
+    font-family: var(--mono); font-size: 11px; color: var(--accent);
+    background: rgba(0,229,160,.08); border: 1px solid rgba(0,229,160,.2);
+    width: 28px; height: 28px; border-radius: 3px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center; margin-top: 3px;
+  }
+  .step-num.blue { color: var(--blue); background: rgba(74,158,255,.08); border-color: rgba(74,158,255,.2); }
+  .step-num.orange { color: var(--orange); background: rgba(251,146,60,.08); border-color: rgba(251,146,60,.2); }
+  .step-content h4 { color: var(--text); font-family: var(--sans); font-size: .9rem; text-transform: none; letter-spacing: 0; margin-bottom: 4px; }
+  .step-content p { margin: 0; font-size: .84rem; }
+
+  /* ── Linux search ── */
+  .linux-search {
+    width: 100%; background: var(--surface2); border: 1px solid var(--border2);
+    border-radius: 3px; color: var(--text); font-family: var(--mono); font-size: 13px;
+    padding: 10px 14px; outline: none; margin-bottom: 14px;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .linux-search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(0,229,160,.08); }
+  .linux-row { display: none; }
+  .linux-row.visible { display: table-row; }
+
+  /* ── GitHub Pages Flow ── */
+  .pages-flow { display: flex; flex-direction: column; gap: 0; }
+  .pages-step { display: flex; align-items: flex-start; gap: 16px; padding: 16px 0; border-bottom: 1px solid var(--border); }
+  .pages-num {
+    font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--orange);
+    background: rgba(251,146,60,.08); border: 1px solid rgba(251,146,60,.25);
+    min-width: 32px; height: 32px; border-radius: 3px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .pages-content h4 { font-family: var(--sans); text-transform: none; letter-spacing: 0; color: var(--text); font-size: .95rem; margin-bottom: 4px; }
+  .pages-content p { margin: 0 0 6px; font-size: .84rem; }
+
+  /* ── Accordion ── */
+  .accordion { border: 1px solid var(--border); border-radius: 4px; overflow: hidden; margin-bottom: 10px; }
+  .acc-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 14px 18px; cursor: pointer; background: var(--surface);
+    font-weight: 700; font-size: .9rem; user-select: none;
+    transition: background .2s;
+  }
+  .acc-head:hover { background: var(--surface2); }
+  .acc-icon { font-size: .9rem; color: var(--accent); transition: transform .3s; }
+  .acc-body { display: none; padding: 18px; background: var(--surface2); border-top: 1px solid var(--border); font-size: .88rem; }
+  .accordion.open .acc-icon { transform: rotate(45deg); }
+  .accordion.open .acc-body { display: block; }
+
+  /* ── Toast ── */
+  #toast { position: fixed; bottom: 28px; right: 28px; z-index: 999; font-family: var(--mono); font-size: 13px; background: var(--accent); color: #000; padding: 11px 22px; border-radius: 3px; transform: translateY(70px); opacity: 0; transition: all .3s; pointer-events: none; }
+  #toast.show { transform: translateY(0); opacity: 1; }
+
+  footer { padding: 40px 0; text-align: center; font-family: var(--mono); font-size: 11px; color: var(--muted); }
+
+  @media (max-width: 640px) {
+    .git-states { grid-template-columns: 1fr; }
+    .html-demo  { grid-template-columns: 1fr; }
+    .git-box.remote { margin-top: 12px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header>
+    <div class="kicker">▶ Padrões Web · Low-code & No-code · UniFECAF</div>
+    <h1>Live 02 —<br/><em>Construa, Versione e Publique</em></h1>
+    <p class="sub">// HTML · CSS · Git · GitHub · GitHub Pages · Linux</p>
+  </header>
+</div>
+
+<nav>
+  <div class="wrap">
+    <div class="nav-scroll">
+      <button class="tab active" data-tab="abertura">🎯 Introdução</button>
+      <button class="tab" data-tab="ferramentas">🛠️ Ferramentas</button>
+      <button class="tab" data-tab="linux">🐧 Linux</button>
+      <button class="tab" data-tab="git-local">🌿 Git Local</button>
+      <button class="tab" data-tab="html-css">🎨 HTML &amp; CSS</button>
+      <button class="tab" data-tab="git-remoto">☁️ Remoto &amp; Branches</button>
+      <button class="tab" data-tab="pages">🌐 GitHub Pages</button>
+      <button class="tab" data-tab="duplas">👥 Prática em Duplas</button>
+      <button class="tab" data-tab="desafio">🏁 Desafio Final</button>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap">
+
+<!-- ══════════════════════════════════════════
+     ABA 1 — INTRODUÇÃO
+══════════════════════════════════════════ -->
+<section class="section active" id="abertura">
+  <div class="sec-label">Live 02 · Versionamento &amp; Front-end</div>
+  <h2>Por que versionar desde o primeiro arquivo?</h2>
+  <p>Você já viu uma pasta de projeto assim? Todo programador tem uma história parecida.</p>
+
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:5px;padding:20px;margin:18px 0;font-family:var(--mono);font-size:12px;color:var(--muted);">
+    📁 meu-projeto/<br>
+    &nbsp;&nbsp;📄 index.html<br>
+    &nbsp;&nbsp;📄 index_backup.html<br>
+    &nbsp;&nbsp;📄 index_v2.html<br>
+    &nbsp;&nbsp;📄 index_v2_FINAL.html<br>
+    &nbsp;&nbsp;📄 index_v2_FINAL_corrigido.html<br>
+    &nbsp;&nbsp;📄 index_v2_FINAL_corrigido2.html<br>
+    &nbsp;&nbsp;<span style="color:var(--red)">📄 index_v2_FINAL_USE_THIS_ONE.html</span><br>
+    &nbsp;&nbsp;📄 index_PARA_APAGAR.html<br>
+    &nbsp;&nbsp;📄 style_bom.css<br>
+    &nbsp;&nbsp;📄 style_ANTIGO.css
+  </div>
+
+  <div class="tip">
+    <strong>Git resolve exatamente isso.</strong> Com controle de versão, você tem um único arquivo com um histórico completo de <em>todas</em> as versões — cada uma com data, hora, autor e uma mensagem explicando o que mudou.
+  </div>
+
+  <h3 style="margin-top:36px">O que vamos construir nesta live?</h3>
+  <div class="grid grid-2" style="margin-top:14px">
+    <div class="card card-accent">
+      <div class="card-icon">💻</div>
+      <h3>Uma página real</h3>
+      <p>Você vai escrever HTML e CSS do zero, traduzindo um layout visual em código — assim como funciona no mundo real.</p>
+    </div>
+    <div class="card card-blue">
+      <div class="card-icon">🌍</div>
+      <h3>E publicar na internet</h3>
+      <p>A página vai ao ar no GitHub Pages com sua URL pública. Você vai poder enviar o link para qualquer pessoa acessar.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">O que você vai aprender</h3>
+  <div class="grid grid-3" style="margin-top:14px">
+    <div class="card">
+      <div class="card-icon">🐧</div>
+      <h3>Terminal Linux</h3>
+      <p>Comandos essenciais para navegar em pastas, criar e editar arquivos diretamente pela linha de comando.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🌿</div>
+      <h3>Git &amp; GitHub</h3>
+      <p>Os 3 estados do Git, os primeiros comandos, branches, trabalho colaborativo e histórico de versões.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎨</div>
+      <h3>HTML &amp; CSS básico</h3>
+      <p>Estrutura de documentos, tags de conteúdo essenciais, seletores CSS e o box model para controlar espaçamentos.</p>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:28px">
+    <strong>Pré-requisitos para acompanhar a prática:</strong> Git instalado (<code>git --version</code> no terminal), conta no GitHub criada e o VS Code aberto com as extensões da aba <strong>🛠️ Ferramentas</strong>. Sem VS Code? Use <strong>fronteditor.dev</strong> — explicamos tudo na próxima aba!
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     ABA 2 — FERRAMENTAS
+══════════════════════════════════════════ -->
+<section class="section" id="ferramentas">
+  <div class="sec-label">Ambiente de Desenvolvimento</div>
+  <h2>Ferramentas que vamos usar</h2>
+  <p>Antes de escrever qualquer linha de código, precisamos configurar nosso ambiente. Aqui estão as ferramentas essenciais desta live.</p>
+
+  <h3 style="margin-top:36px">O que é uma IDE?</h3>
+  <div class="grid grid-2" style="margin-top:14px">
+    <div class="card card-accent">
+      <div class="card-icon">🧰</div>
+      <h3>IDE — Integrated Development Environment</h3>
+      <p>Uma IDE é um <strong>editor de código turbinado</strong>: além de escrever texto, ela entende a linguagem que você está usando, sugere completamentos, destaca erros, integra com o terminal, o Git e dezenas de outras ferramentas — tudo em uma janela só.</p>
+      <p style="margin-top:8px">Pense nela como a diferença entre um bloco de notas e o IntelliJ ou Eclipse que você já usou para Java — a IDE te ajuda a trabalhar, não só a escrever.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⚙️</div>
+      <h3>Editor de texto vs IDE</h3>
+      <table class="tbl" style="margin-top:8px">
+        <thead><tr><th>Editor simples</th><th>IDE</th></tr></thead>
+        <tbody>
+          <tr><td style="color:#8da0b8">Edita texto</td><td style="color:var(--accent)">Edita + entende o código</td></tr>
+          <tr><td style="color:#8da0b8">Sem sugestões</td><td style="color:var(--accent)">Autocomplete inteligente</td></tr>
+          <tr><td style="color:#8da0b8">Sem depuração</td><td style="color:var(--accent)">Debugger integrado</td></tr>
+          <tr><td style="color:#8da0b8">Sem Git</td><td style="color:var(--accent)">Git integrado</td></tr>
+          <tr><td style="color:#8da0b8">Sem terminal</td><td style="color:var(--accent)">Terminal embutido</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">Visual Studio Code — nossa IDE</h3>
+  <p>O VS Code é hoje a IDE mais usada no mundo do desenvolvimento web. É gratuita, open source, leve e altamente extensível.</p>
+
+  <div class="grid grid-3" style="margin-top:14px">
+    <div class="card">
+      <div class="card-icon">🌐</div>
+      <h3>Download</h3>
+      <p><strong>code.visualstudio.com</strong> — disponível para Windows, macOS e Linux. Baixe a versão estável (Stable).</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">⌨️</div>
+      <h3>Terminal integrado</h3>
+      <p>Abra com <code>Ctrl + `</code> (backtick). É o mesmo terminal do sistema — você vai usar o <strong>Git Bash</strong> aqui durante a live.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">💡</div>
+      <h3>Abrir projeto</h3>
+      <p>Arraste uma pasta para o VS Code, ou no terminal digite <code>code .</code> dentro da pasta do projeto.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">Extensões — instalando o Live Server</h3>
+  <p>Extensões são como plugins que adicionam funcionalidades ao VS Code. Para esta live, <strong>uma extensão é essencial</strong>:</p>
+
+  <div class="card card-accent" style="margin-top:14px;margin-bottom:20px">
+    <div style="display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap">
+      <div style="font-size:2.5rem;flex-shrink:0">🔄</div>
+      <div>
+        <h3>Live Server <span style="font-family:var(--mono);font-size:11px;color:var(--muted);font-weight:400">— Ritwick Dey</span></h3>
+        <p>Abre seu <code>index.html</code> no navegador e <strong>atualiza automaticamente</strong> toda vez que você salva o arquivo. Sem precisar dar F5 manualmente a cada mudança.</p>
+        <div style="margin-top:12px">
+          <h4>Como instalar:</h4>
+          <div class="step-list" style="margin-top:8px">
+            <div class="step" style="padding:10px 0">
+              <div class="step-num" style="font-size:10px">1</div>
+              <div class="step-content"><p>Abra o VS Code → clique no ícone de extensões na barra lateral (ou <code>Ctrl+Shift+X</code>)</p></div>
+            </div>
+            <div class="step" style="padding:10px 0">
+              <div class="step-num" style="font-size:10px">2</div>
+              <div class="step-content"><p>Busque por <strong>Live Server</strong> → clique em <strong>Install</strong></p></div>
+            </div>
+            <div class="step" style="padding:10px 0">
+              <div class="step-num" style="font-size:10px">3</div>
+              <div class="step-content"><p>Com o <code>index.html</code> aberto, clique em <strong>Go Live</strong> no canto inferior direito do VS Code. Seu navegador abrirá automaticamente!</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">Extensões de Git &amp; GitHub — para conhecer</h3>
+  <p>Estas extensões existem e são úteis, mas <strong>nesta live vamos usar o terminal (Git Bash)</strong> para todos os comandos Git — é a forma mais direta de aprender o que está acontecendo por baixo dos panos.</p>
+
+  <div class="grid grid-2" style="margin-top:14px">
+    <div class="card" style="opacity:.8">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="font-size:1.6rem">🐙</div>
+        <div>
+          <h3 style="margin:0">GitHub Pull Requests</h3>
+          <span class="badge badge-pages">informativo</span>
+        </div>
+      </div>
+      <p>Permite gerenciar Pull Requests e Issues do GitHub diretamente dentro do VS Code, sem abrir o navegador. Útil em fluxos de trabalho mais avançados.</p>
+    </div>
+    <div class="card" style="opacity:.8">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px">
+        <div style="font-size:1.6rem">🕐</div>
+        <div>
+          <h3 style="margin:0">Git History</h3>
+          <span class="badge badge-pages">informativo</span>
+        </div>
+      </div>
+      <p>Exibe o histórico de commits de forma gráfica e visual dentro do VS Code. Bom para visualizar branches e comparar versões de arquivos.</p>
+    </div>
+  </div>
+
+  <div class="warn" style="margin-top:6px">
+    <strong>Por que usar o terminal em vez das extensões?</strong> Quando você digita <code>git add .</code> no terminal, você entende exatamente o que está acontecendo. As extensões escondem isso atrás de botões — ótimo para produtividade, mas ruim para aprendizado. Aprenda o terminal primeiro, use as extensões depois.
+  </div>
+
+  <h3 style="margin-top:36px">Não tem VS Code instalado? Sem problema.</h3>
+  <p>Durante a live, você pode acompanhar toda a parte de HTML e CSS usando um editor online, direto no navegador — sem instalar nada:</p>
+
+  <div class="card card-blue" style="margin-top:14px">
+    <div style="display:flex;align-items:flex-start;gap:18px;flex-wrap:wrap">
+      <div style="font-size:2.5rem;flex-shrink:0">🌐</div>
+      <div style="flex:1">
+        <h3>Front Editor — fronteditor.dev</h3>
+        <p>Editor online com painéis separados para HTML e CSS e preview ao vivo. Funciona direto no navegador, sem cadastro, sem instalação.</p>
+        <div class="code" style="margin-top:12px;border-left-color:var(--blue)">https://www.fronteditor.dev/</div>
+        <div class="tip" style="margin-top:12px;font-size:.82rem">
+          <strong>Como usar:</strong> Acesse o link, escreva seu HTML no painel esquerdo e o CSS no painel central — o resultado aparece no painel da direita em tempo real. Para a parte de Git e GitHub, você ainda vai precisar do terminal local.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">Checklist de ambiente — antes de começar</h3>
+  <div class="ck-list" id="ck-env">
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck-env','prog-env','prog-env-lbl')"><div class="ck-box">✓</div><div class="ck-text">Git instalado: abra o terminal e execute <code>git --version</code> — deve retornar a versão</div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck-env','prog-env','prog-env-lbl')"><div class="ck-box">✓</div><div class="ck-text">Conta criada em <strong>github.com</strong></div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck-env','prog-env','prog-env-lbl')"><div class="ck-box">✓</div><div class="ck-text">VS Code instalado — ou <strong>fronteditor.dev</strong> aberto no navegador</div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck-env','prog-env','prog-env-lbl')"><div class="ck-box">✓</div><div class="ck-text">Extensão <strong>Live Server</strong> instalada no VS Code</div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck-env','prog-env','prog-env-lbl')"><div class="ck-box">✓</div><div class="ck-text">Git configurado com nome e e-mail: <code>git config --global user.name "Seu Nome"</code></div></label>
+  </div>
+  <div class="prog-wrap"><div class="prog-bar" id="prog-env"></div></div>
+  <div class="prog-lbl" id="prog-env-lbl">0 / 5 concluídos</div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     ABA 3 — LINUX
+══════════════════════════════════════════ -->
+<section class="section" id="linux">
+  <div class="sec-label">Fundamentos do Terminal</div>
+  <h2>Linux: a língua dos servidores</h2>
+  <p>Mais de <strong>96% dos servidores web no mundo rodam Linux</strong>. O GitHub Actions, a maioria dos ambientes de desenvolvimento e os contêineres Docker são todos Linux. Saber se virar no terminal não é opcional — é uma habilidade fundamental.</p>
+
+  <div class="grid grid-2" style="margin-top:20px">
+    <div class="card">
+      <div class="card-icon">🖥️</div>
+      <h3>Terminal vs GUI</h3>
+      <p>A interface gráfica (GUI) é uma <strong>tradução visual</strong> dos comandos. O terminal acessa o sistema diretamente — mais rápido, mais poderoso, scriptável.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📂</div>
+      <h3>Tudo é arquivo</h3>
+      <p>No Linux, tudo — discos, dispositivos, processos — é representado como arquivo. Entender o sistema de arquivos é a base de tudo.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">Terminal Interativo — Experimente</h3>
+  <p>Clique em um comando abaixo para ver o que ele faz, ou digite no terminal simulado:</p>
+
+  <div class="term-cmd-list" id="linux-btns"></div>
+
+  <div class="term-wrap">
+    <div class="term-bar">
+      <div class="term-dot r"></div><div class="term-dot y"></div><div class="term-dot g"></div>
+      <span class="term-title">bash — aluno@linux:~/projetos</span>
+    </div>
+    <div class="term-body" id="linux-term">
+      <div class="term-line"><span class="output" style="color:var(--accent)">// Clique em um comando acima ou digite abaixo ↓</span></div>
+    </div>
+    <div class="term-input-row">
+      <span class="prompt">aluno@linux:~/projetos$</span>
+      <input class="term-input" id="linux-input" type="text" placeholder="digite um comando..." autocomplete="off" />
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">Referência de Comandos Linux</h3>
+  <input class="linux-search" id="linux-filter" type="text" placeholder="🔍  Buscar comando..." />
+
+  <table class="tbl" id="linux-table">
+    <thead>
+      <tr>
+        <th>Comando</th>
+        <th>O que faz</th>
+        <th>Exemplo</th>
+      </tr>
+    </thead>
+    <tbody id="linux-tbody">
+    </tbody>
+  </table>
+
+  <div class="tip" style="margin-top:20px">
+    <strong>Dica de ouro:</strong> Use <kbd style="background:var(--surface2);padding:2px 6px;border-radius:2px;font-family:var(--mono);font-size:.8em">Tab</kbd> para autocompletar nomes de arquivos e pastas. Use <kbd style="background:var(--surface2);padding:2px 6px;border-radius:2px;font-family:var(--mono);font-size:.8em">↑</kbd> para navegar no histórico de comandos.
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     ABA 3 — GIT LOCAL
+══════════════════════════════════════════ -->
+<section class="section" id="git-local">
+  <div class="sec-label">Controle de Versão</div>
+  <h2>Git — como ele pensa sobre seu código</h2>
+  <p>Git não salva "diferenças entre arquivos" como muitas pessoas imaginam. Ele tira <strong>fotografias</strong> do estado completo do seu projeto em um momento específico. Cada commit é uma dessas fotos.</p>
+
+  <div class="grid grid-3" style="margin-top:18px">
+    <div class="card card-accent">
+      <h4>Sistema Distribuído</h4>
+      <p>Cada desenvolvedor tem uma cópia completa do histórico. Não depende de servidor central para funcionar.</p>
+    </div>
+    <div class="card card-blue">
+      <h4>Histórico imutável</h4>
+      <p>Uma vez commitado, nada some. Você pode sempre voltar a qualquer ponto no tempo.</p>
+    </div>
+    <div class="card card-amber">
+      <h4>Orientado a conteúdo</h4>
+      <p>Git identifica arquivos pelo conteúdo (hash SHA-1), não pelo nome. Renomear não "perde" histórico.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">Os 3 estados do Git</h3>
+  <p>Esta é a ideia mais importante do Git. Todo arquivo no seu projeto está sempre em um desses três estados:</p>
+
+  <div class="git-states" id="git-states">
+    <div class="git-box" id="gs-work">
+      <h4>Working Directory</h4>
+      <span class="box-icon">📝</span>
+      <span class="box-name">Modificado</span>
+    </div>
+
+    <div class="git-arrow" id="ga-add">
+      <div class="git-arrow-line up" id="ga-add-up">→ git add</div>
+      <div class="git-arrow-line down" id="ga-add-down" style="opacity:.3">← git restore</div>
+    </div>
+
+    <div class="git-box" id="gs-stage">
+      <h4>Staging Area</h4>
+      <span class="box-icon">📦</span>
+      <span class="box-name">Preparado</span>
+    </div>
+
+    <div class="git-arrow" id="ga-commit">
+      <div class="git-arrow-line up" id="ga-commit-up">→ git commit</div>
+      <div class="git-arrow-line down" id="ga-commit-down" style="opacity:.3">← git reset</div>
+    </div>
+
+    <div class="git-box" id="gs-repo">
+      <h4>Local Repo</h4>
+      <span class="box-icon">🗄️</span>
+      <span class="box-name">Consolidado</span>
+    </div>
+
+    <div class="git-arrow" id="ga-push">
+      <div class="git-arrow-line up" id="ga-push-up">→ git push</div>
+      <div class="git-arrow-line down" id="ga-push-down" style="opacity:.3">← git pull</div>
+    </div>
+
+    <div class="git-box remote" id="gs-remote">
+      <h4>Remote Repo</h4>
+      <span class="box-icon">☁️</span>
+      <span class="box-name">GitHub</span>
+    </div>
+  </div>
+
+  <div class="git-ctrl">
+    <button class="git-btn" data-action="work">📝 Editar arquivo</button>
+    <button class="git-btn" data-action="add">git add .</button>
+    <button class="git-btn" data-action="commit">git commit -m</button>
+    <button class="git-btn" data-action="push">git push</button>
+    <button class="git-btn" data-action="pull">git pull</button>
+    <button class="git-btn" data-action="reset">git restore / reset</button>
+  </div>
+  <div class="git-explain" id="git-explain">
+    👆 Clique em um botão acima para ver o que acontece em cada etapa.
+  </div>
+
+  <h3 style="margin-top:36px">Primeiro repositório — passo a passo</h3>
+
+  <div class="accordion">
+    <div class="acc-head" data-acc="toggle">
+      <span>① Configurando o Git pela primeira vez</span>
+      <span class="acc-icon">+</span>
+    </div>
+    <div class="acc-body">
+      <p>Antes de tudo, diga ao Git quem você é. Isso vai aparecer em cada commit:</p>
+      <div class="code"><span class="c-comment"># Configuração global (feita uma vez só)</span>
+<span class="c-cmd">git config</span> --global user.name <span class="c-str">"Seu Nome"</span>
+<span class="c-cmd">git config</span> --global user.email <span class="c-str">"seuemail@provedor.com"</span>
+<span class="c-cmd">git config</span> --global init.defaultBranch main
+
+<span class="c-comment"># Verificar as configurações</span>
+<span class="c-cmd">git config</span> --list</div>
+    </div>
+  </div>
+
+  <div class="accordion">
+    <div class="acc-head" data-acc="toggle">
+      <span>② Iniciando um repositório</span>
+      <span class="acc-icon">+</span>
+    </div>
+    <div class="acc-body">
+      <div class="code"><span class="c-comment"># Criar pasta e entrar nela</span>
+<span class="c-cmd">mkdir</span> portfolio-card
+<span class="c-cmd">cd</span> portfolio-card
+
+<span class="c-comment"># Inicializar o Git nesta pasta</span>
+<span class="c-cmd">git init</span>
+<span class="c-ok">Initialized empty Git repository in /portfolio-card/.git/</span>
+
+<span class="c-comment"># Renomear branch principal para 'main'</span>
+<span class="c-cmd">git branch</span> -M main</div>
+      <div class="callout" style="margin-top:10px">Isso cria uma pasta oculta <code>.git/</code> onde o Git armazena <em>todo</em> o histórico do projeto. Apagar essa pasta = apagar todo o histórico.</div>
+    </div>
+  </div>
+
+  <div class="accordion">
+    <div class="acc-head" data-acc="toggle">
+      <span>③ Verificando o status — git status</span>
+      <span class="acc-icon">+</span>
+    </div>
+    <div class="acc-body">
+      <div class="code"><span class="c-cmd">git status</span>
+
+<span class="c-ok">On branch main</span>
+<span class="c-warn">No commits yet</span>
+
+<span class="c-warn">Untracked files:</span>
+  (use "git add &lt;file&gt;..." to include in what will be committed)
+        <span class="c-err">index.html</span>
+        <span class="c-err">style.css</span>
+
+<span class="c-warn">nothing added to commit but untracked files present</span></div>
+      <p>Arquivos <strong style="color:var(--red)">vermelhos</strong> = não estão sendo rastreados ou foram modificados. Use <code>git status</code> constantemente — ele explica o que fazer a seguir.</p>
+    </div>
+  </div>
+
+  <div class="accordion">
+    <div class="acc-head" data-acc="toggle">
+      <span>④ Preparando arquivos — git add</span>
+      <span class="acc-icon">+</span>
+    </div>
+    <div class="acc-body">
+      <div class="code"><span class="c-comment"># Adicionar um arquivo específico</span>
+<span class="c-cmd">git add</span> index.html
+
+<span class="c-comment"># Adicionar todos os arquivos da pasta atual</span>
+<span class="c-cmd">git add</span> .
+
+<span class="c-comment"># Verificar o que está pronto para commit</span>
+<span class="c-cmd">git status</span>
+<span class="c-ok">Changes to be committed:
+  new file:   index.html
+  new file:   style.css</span></div>
+      <div class="tip">A Staging Area existe para você ter controle fino. Você pode commitar alguns arquivos mas não outros — por exemplo, commitar o CSS mas deixar o HTML ainda em desenvolvimento.</div>
+    </div>
+  </div>
+
+  <div class="accordion">
+    <div class="acc-head" data-acc="toggle">
+      <span>⑤ Criando uma versão — git commit</span>
+      <span class="acc-icon">+</span>
+    </div>
+    <div class="acc-body">
+      <div class="code"><span class="c-cmd">git commit</span> -m <span class="c-str">"feat: cria estrutura inicial do cartão de portfólio"</span>
+
+<span class="c-ok">[main (root-commit) a3f9c12] feat: cria estrutura inicial do cartão de portfólio
+ 2 files changed, 45 insertions(+)
+ create mode 100644 index.html
+ create mode 100644 style.css</span></div>
+      <div class="warn"><strong>Boas mensagens de commit importam.</strong> Use verbos no imperativo, em inglês ou português. Ex: <code>feat: adiciona seção de habilidades</code>, <code>fix: corrige layout mobile</code>, <code>style: ajusta paleta de cores</code>.</div>
+    </div>
+  </div>
+
+  <div class="accordion">
+    <div class="acc-head" data-acc="toggle">
+      <span>⑥ Consultando o histórico — git log</span>
+      <span class="acc-icon">+</span>
+    </div>
+    <div class="acc-body">
+      <div class="code"><span class="c-comment"># Ver histórico completo</span>
+<span class="c-cmd">git log</span>
+
+<span class="c-comment"># Versão compacta (a mais usada no dia a dia)</span>
+<span class="c-cmd">git log</span> --oneline
+
+<span class="c-ok">a3f9c12 (HEAD -> main) feat: adiciona seção de habilidades
+d2e7b1a feat: cria estrutura inicial do cartão de portfólio</span>
+
+<span class="c-comment"># O hash (a3f9c12) identifica cada commit de forma única</span></div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">Voltando no tempo — git reset</h3>
+  <p>Uma das superpoderes do Git é poder voltar a qualquer ponto do histórico.</p>
+
+  <table class="tbl">
+    <thead><tr><th>Comando</th><th>HEAD</th><th>Staging</th><th>Arquivos</th><th>Uso</th></tr></thead>
+    <tbody>
+      <tr><td><code>git reset --soft &lt;hash&gt;</code></td><td style="color:var(--accent)">volta</td><td style="color:var(--amber)">mantém</td><td style="color:var(--amber)">mantém</td><td style="color:#8da0b8">Refazer mensagem do commit</td></tr>
+      <tr><td><code>git reset --mixed &lt;hash&gt;</code></td><td style="color:var(--accent)">volta</td><td style="color:var(--red)">limpa</td><td style="color:var(--amber)">mantém</td><td style="color:#8da0b8">Reorganizar o que vai no commit</td></tr>
+      <tr><td><code>git reset --hard &lt;hash&gt;</code></td><td style="color:var(--accent)">volta</td><td style="color:var(--red)">limpa</td><td style="color:var(--red)">apaga</td><td style="color:#8da0b8">⚠️ Descartar tudo — sem volta</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══════════════════════════════════════════
+     ABA 4 — HTML & CSS
+══════════════════════════════════════════ -->
+<section class="section" id="html-css">
+  <div class="sec-label">Front-end para Programadores</div>
+  <h2>HTML &amp; CSS — traduzindo o que você já sabe</h2>
+  <p>Se você já programa, você já entende estruturas de dados, hierarquia e separação de responsabilidades. HTML e CSS são só um vocabulário novo para conceitos que você já conhece.</p>
+
+  <div class="grid grid-3" style="margin-top:18px">
+    <div class="card card-amber">
+      <div class="card-icon">📄</div>
+      <h3>HTML</h3>
+      <p>O <strong>esqueleto</strong>. Define a estrutura e o significado do conteúdo. Pense como um JSON: hierarquia de elementos, com atributos.</p>
+    </div>
+    <div class="card card-blue">
+      <div class="card-icon">🎨</div>
+      <h3>CSS</h3>
+      <p>A <strong>aparência</strong>. Define como os elementos são exibidos. Pense como uma stylesheet de configuração: <code>propriedade: valor</code>.</p>
+    </div>
+    <div class="card" style="border-top:2px solid var(--purple)">
+      <div class="card-icon">⚡</div>
+      <h3>JavaScript</h3>
+      <p>O <strong>comportamento</strong>. Torna a página dinâmica. É o que você aprenderá depois — foca no HTML+CSS por agora.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">A estrutura de um documento HTML</h3>
+  <p>Todo arquivo HTML tem a mesma estrutura básica — como a estrutura de uma classe em qualquer linguagem:</p>
+
+  <div class="html-demo" style="display:block">
+    <div class="html-pane">
+      <div class="pane-label">📄 index.html — estrutura mínima</div>
+      <div class="pane-code"><span class="hs">&lt;!DOCTYPE html&gt;</span>          <span style="color:var(--muted)">← declara o tipo de documento</span>
+<span class="ht">&lt;html</span> <span class="ha">lang</span>=<span class="hv">"pt-BR"</span><span class="ht">&gt;</span>       <span style="color:var(--muted)">← raiz do documento</span>
+
+  <span class="ht">&lt;head&gt;</span>                     <span style="color:var(--muted)">← metadados (não aparece na tela)</span>
+    <span class="ht">&lt;meta</span> <span class="ha">charset</span>=<span class="hv">"UTF-8"</span><span class="ht">/&gt;</span>
+    <span class="ht">&lt;meta</span> <span class="ha">name</span>=<span class="hv">"viewport"</span>
+          <span class="ha">content</span>=<span class="hv">"width=device-width"</span><span class="ht">/&gt;</span>
+    <span class="ht">&lt;title&gt;</span><span class="hs">Meu Portfólio</span><span class="ht">&lt;/title&gt;</span>
+    <span class="ht">&lt;link</span> <span class="ha">rel</span>=<span class="hv">"stylesheet"</span> <span class="ha">href</span>=<span class="hv">"style.css"</span><span class="ht">/&gt;</span>
+  <span class="ht">&lt;/head&gt;</span>
+
+  <span class="ht">&lt;body&gt;</span>                     <span style="color:var(--muted)">← conteúdo visível</span>
+    <span class="ht">&lt;h1&gt;</span><span class="hs">Olá, mundo!</span><span class="ht">&lt;/h1&gt;</span>
+    <span class="ht">&lt;p&gt;</span><span class="hs">Meu primeiro parágrafo.</span><span class="ht">&lt;/p&gt;</span>
+  <span class="ht">&lt;/body&gt;</span>
+
+<span class="ht">&lt;/html&gt;</span></div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">Tags essenciais — o vocabulário básico</h3>
+  <p>Vamos focar nas tags de <strong>conteúdo</strong> — as que você vai usar para montar o cartão de portfólio desta live. Tags semânticas estruturais (<code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;section&gt;</code>, etc.) e multimídia são tema da próxima live.</p>
+
+  <div class="grid grid-2" style="margin-top:14px">
+    <div>
+      <h4>Contêineres</h4>
+      <table class="tbl">
+        <thead><tr><th>Tag</th><th>Uso</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;div&gt;</code></td><td>Container de bloco genérico (agrupa elementos)</td></tr>
+          <tr><td><code>&lt;span&gt;</code></td><td>Container inline (estiliza trecho de texto)</td></tr>
+          <tr><td><code>&lt;main&gt;</code></td><td>Área principal da página</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div>
+      <h4>Conteúdo</h4>
+      <table class="tbl">
+        <thead><tr><th>Tag</th><th>Uso</th></tr></thead>
+        <tbody>
+          <tr><td><code>&lt;h1&gt;…&lt;h6&gt;</code></td><td>Títulos — do mais ao menos importante</td></tr>
+          <tr><td><code>&lt;p&gt;</code></td><td>Parágrafo de texto</td></tr>
+          <tr><td><code>&lt;a href="url"&gt;</code></td><td>Link clicável</td></tr>
+          <tr><td><code>&lt;img src="" alt=""&gt;</code></td><td>Imagem (sem tag de fechamento)</td></tr>
+          <tr><td><code>&lt;ul&gt;</code> + <code>&lt;li&gt;</code></td><td>Lista com marcadores</td></tr>
+          <tr><td><code>&lt;strong&gt;</code></td><td>Texto em negrito com significado</td></tr>
+          <tr><td><code>&lt;em&gt;</code></td><td>Texto em itálico com significado</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:14px">
+    <strong>Tag de abertura e fechamento:</strong> A maioria das tags tem par — <code>&lt;p&gt;texto&lt;/p&gt;</code>. Algumas são <em>void elements</em> e ficam sozinhas: <code>&lt;img /&gt;</code>, <code>&lt;br /&gt;</code>, <code>&lt;input /&gt;</code>. O atributo <code>alt</code> na imagem é obrigatório — descreve a imagem para leitores de tela e SEO.
+  </div>
+
+  <h3 style="margin-top:36px">CSS — seletores e propriedades</h3>
+  <p>A sintaxe do CSS é simples: <strong>quem</strong> você quer estilizar e <strong>o que</strong> você quer mudar.</p>
+
+  <div class="html-demo">
+    <div class="html-pane">
+      <div class="pane-label">🎨 style.css</div>
+      <div class="pane-code"><span style="color:var(--muted)">/* Seleciona por tag */</span>
+<span style="color:var(--blue)">body</span> {
+  <span style="color:var(--amber)">font-family</span>: <span style="color:var(--accent)">'Segoe UI', sans-serif</span>;
+  <span style="color:var(--amber)">background-color</span>: <span style="color:var(--accent)">#f0f4f8</span>;
+  <span style="color:var(--amber)">margin</span>: <span style="color:var(--accent)">0</span>;
+}
+
+<span style="color:var(--muted)">/* Seleciona por classe (.nome) */</span>
+<span style="color:var(--blue)">.card</span> {
+  <span style="color:var(--amber)">background</span>: <span style="color:var(--accent)">#fff</span>;
+  <span style="color:var(--amber)">border-radius</span>: <span style="color:var(--accent)">12px</span>;
+  <span style="color:var(--amber)">padding</span>: <span style="color:var(--accent)">24px</span>;
+  <span style="color:var(--amber)">box-shadow</span>: <span style="color:var(--accent)">0 4px 12px rgba(0,0,0,.1)</span>;
+}
+
+<span style="color:var(--muted)">/* Seleciona por id (#nome) */</span>
+<span style="color:var(--blue)">#nome</span> {
+  <span style="color:var(--amber)">font-size</span>: <span style="color:var(--accent)">2rem</span>;
+  <span style="color:var(--amber)">color</span>: <span style="color:var(--accent)">#1a1a2e</span>;
+}</div>
+    </div>
+    <div class="html-pane">
+      <div class="pane-label">📄 index.html (usando as classes)</div>
+      <div class="pane-code"><span class="ht">&lt;body&gt;</span>
+  <span class="ht">&lt;div</span> <span class="ha">class</span>=<span class="hv">"card"</span><span class="ht">&gt;</span>
+    <span class="ht">&lt;h1</span> <span class="ha">id</span>=<span class="hv">"nome"</span><span class="ht">&gt;</span><span class="hs">Ana Silva</span><span class="ht">&lt;/h1&gt;</span>
+    <span class="ht">&lt;p&gt;</span><span class="hs">Desenvolvedora Full-Stack</span><span class="ht">&lt;/p&gt;</span>
+  <span class="ht">&lt;/div&gt;</span>
+<span class="ht">&lt;/body&gt;</span>
+
+<span style="color:var(--muted)">
+/* Analogia com POO:
+   tag    → tipo (classe Java)
+   classe → interface/trait
+   id     → instância específica
+   
+   .card aplica estilos a TODOS
+   os elementos com class="card"
+   
+   #nome aplica APENAS ao
+   elemento com id="nome"        */</span></div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">O Box Model — entendendo o espaçamento</h3>
+  <p>Todo elemento HTML é uma caixa. Entender o box model é entender por que as coisas ficam onde ficam:</p>
+
+  <div class="box-model-wrap">
+    <div class="bm-diagram">
+      <div class="bm-margin" id="bm-margin">
+        <div class="bm-border" id="bm-border">
+          <div class="bm-padding" id="bm-padding">
+            <div class="bm-content" id="bm-content">Conteúdo</div>
+          </div>
+        </div>
+      </div>
+      <div class="bm-label" id="bm-layer-label">Passe o mouse nas camadas →</div>
+    </div>
+    <div class="bm-legend">
+      <div class="bm-leg-item" data-bm='margin' >
+        <div class="bm-leg-dot" style="background:rgba(251,146,60,.5)"></div>
+        <div><strong style="color:var(--orange)">margin</strong> — espaço <em>fora</em> da borda. Separa elementos entre si. Não tem cor de fundo.</div>
+      </div>
+      <div class="bm-leg-item" data-bm='border' >
+        <div class="bm-leg-dot" style="background:rgba(167,139,250,.5)"></div>
+        <div><strong style="color:var(--purple)">border</strong> — a borda visível. Pode ter espessura, estilo e cor.</div>
+      </div>
+      <div class="bm-leg-item" data-bm='padding' >
+        <div class="bm-leg-dot" style="background:rgba(74,158,255,.5)"></div>
+        <div><strong style="color:var(--blue)">padding</strong> — espaço <em>dentro</em> da borda. Tem cor de fundo. Afasta o conteúdo das bordas.</div>
+      </div>
+      <div class="bm-leg-item" data-bm='content' >
+        <div class="bm-leg-dot" style="background:rgba(0,229,160,.5)"></div>
+        <div><strong style="color:var(--accent)">content</strong> — o conteúdo real: texto, imagem, etc. <code>width</code> e <code>height</code> controlam este tamanho.</div>
+      </div>
+      <div class="tip" style="margin-top:8px;font-size:.82rem">
+        <strong>Dica:</strong> Use <code>box-sizing: border-box</code> para que <code>width</code> inclua padding e border. Muito mais previsível!
+      </div>
+    </div>
+  </div>
+
+  <div class="tip" style="margin-top:28px">
+    <strong>Na próxima live:</strong> vamos aprofundar HTML com semântica, metatags e multimídia (imagem, vídeo, áudio e iframe). No CSS, entraremos em <strong>Flexbox</strong>, <strong>Grid</strong> e <strong>media queries</strong> para criar layouts responsivos. Por enquanto, concentre-se em dominar as propriedades básicas e o box model!
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     ABA 5 — GIT REMOTO & BRANCHES
+══════════════════════════════════════════ -->
+<section class="section" id="git-remoto">
+  <div class="sec-label">Colaboração e Repositório Remoto</div>
+  <h2>GitHub — o Git na nuvem</h2>
+  <p>Git é a ferramenta local. <strong>GitHub</strong> é uma plataforma que hospeda repositórios Git remotamente, adicionando uma camada de colaboração: pull requests, issues, Actions, Pages, e muito mais.</p>
+
+  <div class="grid grid-2" style="margin-top:18px">
+    <div class="card">
+      <div class="card-icon">🐙</div>
+      <h3>git ≠ GitHub</h3>
+      <p><code>git</code> é o software de controle de versão (open source, criado por Linus Torvalds). <strong>GitHub</strong> é uma empresa (da Microsoft) que oferece hospedagem de repos Git. Existem alternativas: GitLab, Bitbucket.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🔗</div>
+      <h3>origin</h3>
+      <p>Quando você conecta seu repo local a um remoto, o Git chama esse remoto de <code>origin</code> por convenção. Você pode ter múltiplos remotos com nomes diferentes.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">Conectando local ao remoto</h3>
+  <div class="code"><span class="c-comment"># Após criar o repo no GitHub, conectar o local:</span>
+<span class="c-cmd">git remote add</span> origin https://github.com/seu-usuario/portfolio-card.git
+
+<span class="c-comment"># Verificar a conexão</span>
+<span class="c-cmd">git remote</span> -v
+<span class="c-ok">origin  https://github.com/seu-usuario/portfolio-card.git (fetch)
+origin  https://github.com/seu-usuario/portfolio-card.git (push)</span>
+
+<span class="c-comment"># Enviar para o remoto pela primeira vez</span>
+<span class="c-cmd">git push</span> -u origin main
+<span class="c-ok">Branch 'main' set up to track remote branch 'main' from 'origin'.</span></div>
+
+  <h3 style="margin-top:36px">Branches — trabalhando em paralelo</h3>
+  <p>Uma branch é uma <strong>linha independente de desenvolvimento</strong>. Pense como um fork do histórico: você experimenta em segurança sem afetar a versão principal.</p>
+
+  <div style="background:var(--surface2);border:1px solid var(--border2);border-radius:6px;padding:24px;margin:20px 0;overflow-x:auto">
+    <div style="font-family:var(--mono);font-size:12px;line-height:2.2">
+      <div style="display:flex;align-items:center;gap:0">
+        <span style="color:var(--muted)">main &nbsp;&nbsp;&nbsp;</span>
+        <span style="color:var(--accent)">●</span>
+        <span style="color:var(--border2)">────────────────────</span>
+        <span style="color:var(--accent)">●</span>
+        <span style="color:var(--border2)">──────</span>
+        <span style="color:var(--purple)">●</span>
+        <span style="color:var(--muted)">&nbsp;← merge commit</span>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:0;padding-left:58px">
+        <span style="color:var(--border2)">╲</span>
+        <span style="color:var(--border2)" style="padding-left:0">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
+        <span style="color:var(--border2)">╱</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:0;padding-left:70px">
+        <span style="color:var(--blue)">●</span>
+        <span style="color:var(--border2)">──────</span>
+        <span style="color:var(--blue)">●</span>
+        <span style="color:var(--muted)">&nbsp;&nbsp;← branch "skills"</span>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:24px">Comandos de branch</h3>
+  <div class="code"><span class="c-comment"># Criar uma nova branch e mudar para ela</span>
+<span class="c-cmd">git branch</span> skills
+<span class="c-cmd">git checkout</span> skills
+<span class="c-comment"># ou em um único comando:</span>
+<span class="c-cmd">git checkout</span> -b skills
+<span class="c-ok">Switched to a new branch 'skills'</span>
+
+<span class="c-comment"># Ver todas as branches</span>
+<span class="c-cmd">git branch</span> -a
+
+<span class="c-comment"># Subir a nova branch para o GitHub</span>
+<span class="c-cmd">git push</span> origin skills
+
+<span class="c-comment"># Voltar para main e fazer merge</span>
+<span class="c-cmd">git checkout</span> main
+<span class="c-cmd">git merge</span> skills
+<span class="c-cmd">git push</span> origin main</div>
+
+  <h3 style="margin-top:36px">push, pull e fetch — a diferença importa</h3>
+  <table class="tbl">
+    <thead><tr><th>Comando</th><th>Direção</th><th>O que faz</th><th>Quando usar</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><code>git push origin main</code></td>
+        <td style="color:var(--orange)">local → remoto</td>
+        <td>Envia seus commits para o GitHub</td>
+        <td>Depois de commitar, para compartilhar</td>
+      </tr>
+      <tr>
+        <td><code>git pull origin main</code></td>
+        <td style="color:var(--blue)">remoto → local</td>
+        <td>Baixa E integra as mudanças (fetch + merge)</td>
+        <td>Para se atualizar com o trabalho do time</td>
+      </tr>
+      <tr>
+        <td><code>git fetch</code></td>
+        <td style="color:var(--purple)">remoto → local repo</td>
+        <td>Baixa sem integrar (você decide como mesclar)</td>
+        <td>Para ver o que mudou sem alterar seu trabalho</td>
+      </tr>
+      <tr>
+        <td><code>git clone &lt;url&gt;</code></td>
+        <td style="color:var(--accent)">remoto → local</td>
+        <td>Copia o repo inteiro para sua máquina</td>
+        <td>Primeira vez que você pega um repo</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="warn">
+    <strong>Conflito de merge:</strong> Quando dois commits alteram a mesma linha do mesmo arquivo, o Git não sabe qual versão manter. Ele marca o conflito no arquivo com <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt;</code> e <code>&gt;&gt;&gt;&gt;&gt;&gt;&gt;</code>. Você resolve manualmente, salva, faz <code>git add</code> e <code>git commit</code>.
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     ABA 6 — GITHUB PAGES
+══════════════════════════════════════════ -->
+<section class="section" id="pages">
+  <div class="sec-label">Deploy gratuito</div>
+  <h2>GitHub Pages — sua página no ar em 2 minutos</h2>
+  <p>GitHub Pages é um serviço <strong>gratuito</strong> do GitHub que publica seu repositório como um site estático. Perfeito para portfólios, documentações e projetos front-end.</p>
+
+  <div class="grid grid-3" style="margin-top:18px">
+    <div class="card card-accent">
+      <div class="card-icon">🆓</div>
+      <h3>100% gratuito</h3>
+      <p>Para repositórios públicos, sem custo algum. Ótimo para projetos pessoais e acadêmicos.</p>
+    </div>
+    <div class="card card-blue">
+      <div class="card-icon">🔗</div>
+      <h3>URL automática</h3>
+      <p>Você ganha uma URL no formato: <code>usuario.github.io/repositorio</code></p>
+    </div>
+    <div class="card card-orange">
+      <div class="card-icon">🔄</div>
+      <h3>Deploy automático</h3>
+      <p>Cada push para a branch configurada atualiza o site em poucos segundos.</p>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">Ativando o GitHub Pages</h3>
+
+  <div class="pages-flow">
+    <div class="pages-step">
+      <div class="pages-num">1</div>
+      <div class="pages-content">
+        <h4>Crie o repositório e faça o primeiro push</h4>
+        <p>Seu repositório precisa ter pelo menos um commit e o arquivo <code>index.html</code> na raiz da branch que você vai publicar.</p>
+        <div class="code" style="margin-top:8px"><span class="c-cmd">git push</span> origin main</div>
+      </div>
+    </div>
+    <div class="pages-step">
+      <div class="pages-num">2</div>
+      <div class="pages-content">
+        <h4>Acesse as configurações do repositório</h4>
+        <p>No GitHub, abra seu repositório → clique em <strong>Settings</strong> (ícone de engrenagem no topo).</p>
+      </div>
+    </div>
+    <div class="pages-step">
+      <div class="pages-num">3</div>
+      <div class="pages-content">
+        <h4>Ative o Pages</h4>
+        <p>No menu lateral esquerdo, clique em <strong>Pages</strong>. Em <em>Branch</em>, selecione <code>main</code> e a pasta <code>/ (root)</code>. Clique em <strong>Save</strong>.</p>
+      </div>
+    </div>
+    <div class="pages-step">
+      <div class="pages-num">4</div>
+      <div class="pages-content">
+        <h4>Aguarde o deploy (≈ 1 minuto)</h4>
+        <p>Aguarde cerca de 1 minuto. Recarregue a página de Settings → Pages. Vai aparecer uma caixa verde com sua URL:</p>
+        <div class="tip" style="margin-top:8px">🎉 Your site is live at <strong>https://seu-usuario.github.io/portfolio-card/</strong></div>
+      </div>
+    </div>
+    <div class="pages-step">
+      <div class="pages-num">5</div>
+      <div class="pages-content">
+        <h4>Atualizações automáticas</h4>
+        <p>A partir de agora, cada <code>git push origin main</code> dispara um deploy automático. Você verá uma bolinha amarela (processando) ou verde (publicado) no seu repositório.</p>
+        <div class="code" style="margin-top:8px"><span class="c-comment"># Edite, commite e veja ao vivo</span>
+<span class="c-cmd">git add</span> .
+<span class="c-cmd">git commit</span> -m <span class="c-str">"style: atualiza cores do cartão"</span>
+<span class="c-cmd">git push</span> origin main
+<span class="c-ok"># Em ~30s, o site é atualizado automaticamente!</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:20px">
+    <strong>Limitações do GitHub Pages:</strong> Apenas sites <em>estáticos</em> (HTML, CSS, JS). Não executa back-end (Python, Java, Node.js com banco de dados). Para projetos full-stack, você precisará de Heroku, Vercel, Render ou similares.
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     ABA 7 — PRÁTICA EM DUPLAS
+══════════════════════════════════════════ -->
+<section class="section" id="duplas">
+  <div class="sec-label">Prática Colaborativa</div>
+  <h2>Missão: Portfólio Card no Ar</h2>
+  <p>Trabalhem em duplas. Um será o <span class="role role-lider">Líder</span> e o outro será o <span class="role role-colab">Colaborador</span>. O objetivo é construir, versionar e publicar uma página de portfólio simples colaborativamente.</p>
+
+  <div class="grid grid-2" style="margin-top:18px">
+    <div class="card card-accent">
+      <h3>🎯 O que vamos construir</h3>
+      <p>Uma página de <strong>Cartão de Portfólio</strong> com: nome, cargo/área, bio, foto (ou avatar) e uma lista de habilidades.</p>
+      <p style="margin-top:8px">O Líder cria a estrutura base. O Colaborador adiciona a seção de habilidades em uma branch separada. Juntos publicam no GitHub Pages.</p>
+    </div>
+    <div class="card card-blue">
+      <h3>📐 O wireframe</h3>
+      <div style="background:#fff;border-radius:6px;padding:14px;font-family:Georgia,serif;font-size:12px;color:#222">
+        <div style="border:2px dashed #ccc;border-radius:8px;padding:14px;text-align:center">
+          <div style="width:56px;height:56px;border-radius:50%;background:#e2e8f0;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;font-size:24px">👤</div>
+          <div style="font-weight:bold;font-size:15px">Seu Nome</div>
+          <div style="color:#666;font-size:11px;margin-bottom:8px">Desenvolvedor(a) Full-Stack</div>
+          <div style="background:#f8fafc;border-radius:4px;padding:8px;font-size:11px;color:#444;text-align:left;margin-bottom:8px">
+            Breve bio aqui. Conte sua história em 2 linhas.
+          </div>
+          <div style="display:flex;gap:4px;flex-wrap:wrap;justify-content:center">
+            <span style="background:#e0f2fe;color:#0369a1;padding:2px 8px;border-radius:12px;font-size:10px">HTML</span>
+            <span style="background:#dcfce7;color:#166534;padding:2px 8px;border-radius:12px;font-size:10px">CSS</span>
+            <span style="background:#fef9c3;color:#854d0e;padding:2px 8px;border-radius:12px;font-size:10px">Git</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">🏗️ Fase 1 — Setup <span class="role role-lider">Líder</span></h3>
+  <div class="prog-wrap"><div class="prog-bar" id="prog1"></div></div>
+  <div class="prog-lbl" id="prog1-lbl">0 / 5 concluídos</div>
+  <div class="ck-list" id="ck1">
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck1','prog1','prog1-lbl')"><div class="ck-box">✓</div><div class="ck-text">Criar pasta <code>portfolio-card</code> e entrar nela: <code>mkdir portfolio-card && cd portfolio-card</code></div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck1','prog1','prog1-lbl')"><div class="ck-box">✓</div><div class="ck-text">Inicializar git: <code>git init</code> e <code>git branch -M main</code></div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck1','prog1','prog1-lbl')"><div class="ck-box">✓</div><div class="ck-text">Criar <code>index.html</code> com o HTML do cartão (nome, bio, foto placeholder). Veja o modelo abaixo!</div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck1','prog1','prog1-lbl')"><div class="ck-box">✓</div><div class="ck-text">Criar <code>style.css</code> com estilo básico do cartão (fundo, fonte, espaçamentos)</div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck1','prog1','prog1-lbl')"><div class="ck-box">✓</div><div class="ck-text">Commitar: <code>git add .</code> → <code>git commit -m "feat: estrutura inicial do portfólio"</code></div></label>
+  </div>
+
+  <div class="accordion" style="margin-top:14px">
+    <div class="acc-head" data-acc="toggle"><span>📄 HTML base do cartão (copie e adapte)</span><span class="acc-icon">+</span></div>
+    <div class="acc-body">
+      <div class="code">&lt;!DOCTYPE html&gt;
+&lt;html lang="pt-BR"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8" /&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0" /&gt;
+  &lt;title&gt;Meu Portfólio&lt;/title&gt;
+  &lt;link rel="stylesheet" href="style.css" /&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;main&gt;
+    &lt;div class="card"&gt;
+
+      &lt;div class="avatar"&gt;
+        &lt;img src="https://api.dicebear.com/7.x/adventurer/svg?seed=SeuNome"
+             alt="Avatar" /&gt;
+      &lt;/div&gt;
+
+      &lt;h1 class="nome"&gt;Seu Nome Aqui&lt;/h1&gt;
+      &lt;p class="cargo"&gt;Desenvolvedor(a) · Área de estudo&lt;/p&gt;
+
+      &lt;div class="bio"&gt;
+        &lt;p&gt;
+          Escreva 2 linhas sobre você: de onde vem,
+          o que está estudando e qual seu objetivo.
+        &lt;/p&gt;
+      &lt;/div&gt;
+
+      &lt;!-- O Colaborador vai adicionar a seção abaixo --&gt;
+      &lt;!-- &lt;section id="habilidades"&gt;&lt;/section&gt; --&gt;
+
+    &lt;/div&gt;
+  &lt;/main&gt;
+&lt;/body&gt;
+&lt;/html&gt;</div>
+    </div>
+  </div>
+
+  <div class="accordion">
+    <div class="acc-head" data-acc="toggle"><span>🎨 CSS base do cartão (copie e adapte)</span><span class="acc-icon">+</span></div>
+    <div class="acc-body">
+      <div class="code">*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: #f0f4f8;
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 36px 32px;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 8px 30px rgba(0,0,0,.12);
+}
+
+.avatar img {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 3px solid #e2e8f0;
+  margin-bottom: 16px;
+}
+
+.nome {
+  font-size: 1.6rem;
+  color: #1a202c;
+  margin-bottom: 4px;
+}
+
+.cargo {
+  font-size: .9rem;
+  color: #718096;
+  margin-bottom: 20px;
+  letter-spacing: .03em;
+}
+
+.bio {
+  background: #f7fafc;
+  border-radius: 8px;
+  padding: 14px 18px;
+  margin-bottom: 20px;
+  text-align: left;
+  border-left: 3px solid #667eea;
+}
+
+.bio p { font-size: .88rem; color: #4a5568; line-height: 1.6; }</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">☁️ Fase 2 — Remoto <span class="role role-lider">Líder</span></h3>
+  <div class="prog-wrap"><div class="prog-bar" id="prog2"></div></div>
+  <div class="prog-lbl" id="prog2-lbl">0 / 4 concluídos</div>
+  <div class="ck-list" id="ck2">
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck2','prog2','prog2-lbl')"><div class="ck-box">✓</div><div class="ck-text">Criar repositório <strong>público</strong> no GitHub com o nome <code>portfolio-card</code> (sem README)</div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck2','prog2','prog2-lbl')"><div class="ck-box">✓</div><div class="ck-text">Conectar e fazer push: <code>git remote add origin &lt;URL&gt;</code> → <code>git push -u origin main</code></div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck2','prog2','prog2-lbl')"><div class="ck-box">✓</div><div class="ck-text">Criar branch <code>habilidades</code> e subir: <code>git branch habilidades</code> → <code>git push origin habilidades</code></div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck2','prog2','prog2-lbl')"><div class="ck-box">✓</div><div class="ck-text">Adicionar o Colaborador: Settings → Collaborators → Add people (usuário GitHub do colega)</div></label>
+  </div>
+
+  <h3 style="margin-top:36px">🔀 Fase 3 — Colaboração <span class="role role-colab">Colaborador</span></h3>
+  <div class="prog-wrap"><div class="prog-bar" id="prog3"></div></div>
+  <div class="prog-lbl" id="prog3-lbl">0 / 5 concluídos</div>
+  <div class="ck-list" id="ck3">
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck3','prog3','prog3-lbl')"><div class="ck-box">✓</div><div class="ck-text">Aceitar o convite no GitHub (chegará por e-mail ou notificação)</div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck3','prog3','prog3-lbl')"><div class="ck-box">✓</div><div class="ck-text">Clonar o repositório: <code>git clone &lt;URL&gt;</code> e entrar na pasta: <code>cd portfolio-card</code></div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck3','prog3','prog3-lbl')"><div class="ck-box">✓</div><div class="ck-text">Ir para branch habilidades: <code>git checkout habilidades</code></div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck3','prog3','prog3-lbl')"><div class="ck-box">✓</div><div class="ck-text">Adicionar seção de habilidades no <code>index.html</code> e CSS no <code>style.css</code> (veja modelo abaixo)</div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck3','prog3','prog3-lbl')"><div class="ck-box">✓</div><div class="ck-text">Commitar e fazer push: <code>git add .</code> → <code>git commit -m "feat: adiciona seção de habilidades"</code> → <code>git push origin habilidades</code></div></label>
+  </div>
+
+  <div class="accordion" style="margin-top:14px">
+    <div class="acc-head" data-acc="toggle"><span>🏷️ HTML + CSS da seção de habilidades (Colaborador)</span><span class="acc-icon">+</span></div>
+    <div class="acc-body">
+      <p>Adicione este bloco dentro de <code>.card</code>, no lugar do comentário deixado pelo Líder:</p>
+      <div class="code">&lt;!-- Substitua o comentário por este bloco: --&gt;
+&lt;section id="habilidades"&gt;
+  &lt;h2&gt;Habilidades&lt;/h2&gt;
+  &lt;div class="skills"&gt;
+    &lt;span class="skill"&gt;HTML&lt;/span&gt;
+    &lt;span class="skill"&gt;CSS&lt;/span&gt;
+    &lt;span class="skill"&gt;Git&lt;/span&gt;
+    &lt;span class="skill"&gt;Python&lt;/span&gt;
+    &lt;!-- adicione suas próprias habilidades --&gt;
+  &lt;/div&gt;
+&lt;/section&gt;
+
+&lt;!-- No style.css, adicione: --&gt;
+#habilidades h2 {
+  font-size: 1rem;
+  color: #718096;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  margin-bottom: 12px;
+}
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.skill {
+  background: #eef2ff;
+  color: #4338ca;
+  padding: 4px 14px;
+  border-radius: 20px;
+  font-size: .82rem;
+  font-weight: 600;
+  transition: transform .2s;
+}
+.skill:hover { transform: scale(1.08); }</div>
+    </div>
+  </div>
+
+  <h3 style="margin-top:36px">🤝 Fase 4 — Merge e Publicação <span class="role role-ambos">Ambos</span></h3>
+  <div class="prog-wrap"><div class="prog-bar" id="prog4"></div></div>
+  <div class="prog-lbl" id="prog4-lbl">0 / 4 concluídos</div>
+  <div class="ck-list" id="ck4">
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck4','prog4','prog4-lbl')"><div class="ck-box">✓</div><div class="ck-text"><span class="role role-lider">Líder</span> — baixar as alterações: <code>git pull origin habilidades</code></div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck4','prog4','prog4-lbl')"><div class="ck-box">✓</div><div class="ck-text"><span class="role role-lider">Líder</span> — mesclar na main: <code>git checkout main</code> → <code>git merge habilidades</code> → <code>git push origin main</code></div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck4','prog4','prog4-lbl')"><div class="ck-box">✓</div><div class="ck-text"><span class="role role-ambos">Ambos</span> — ativar GitHub Pages: Settings → Pages → Branch: main, / (root) → Save</div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck4','prog4','prog4-lbl')"><div class="ck-box">✓</div><div class="ck-text"><span class="role role-ambos">Ambos</span> — acessar a URL publicada e compartilhar no chat da live! 🎉</div></label>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     ABA 8 — DESAFIO FINAL
+══════════════════════════════════════════ -->
+<section class="section" id="desafio">
+  <div class="sec-label">🏁 Wrap-up · 10min</div>
+  <h2>Desafio Final — ao vivo</h2>
+  <p>Agora você vai sentir a magia do deploy contínuo. Uma mudança no código, um commit bem descrito, e em menos de 1 minuto o mundo pode ver.</p>
+
+  <div class="callout" style="margin-top:18px">
+    <strong>A regra:</strong> Qualquer alteração vale. Mude uma cor, adicione uma habilidade, escreva uma frase diferente na bio. O que importa é o <strong>commit com mensagem descritiva</strong> e ver a mudança publicada em tempo real.
+  </div>
+
+  <h3 style="margin-top:28px">Execute agora:</h3>
+  <div class="code"><span class="c-comment"># 1. Faça qualquer alteração no index.html ou style.css</span>
+<span class="c-comment">#    (pode ser mudar uma cor, adicionar uma habilidade, etc.)</span>
+
+<span class="c-comment"># 2. Verifique o que mudou</span>
+<span class="c-cmd">git status</span>
+<span class="c-cmd">git diff</span>
+
+<span class="c-comment"># 3. Prepare e commite com uma mensagem DESCRITIVA</span>
+<span class="c-cmd">git add</span> .
+<span class="c-cmd">git commit</span> -m <span class="c-str">"style: muda cor do fundo para azul-marinho"</span>
+
+<span class="c-comment"># 4. Publique</span>
+<span class="c-cmd">git push</span> origin main
+
+<span class="c-comment"># 5. Aguarde ~30s e recarregue o seu site no GitHub Pages</span>
+<span class="c-ok"># 🎉 Sua alteração está ao vivo!</span></div>
+
+  <h3 style="margin-top:36px">✅ Checklist de hoje</h3>
+  <div class="prog-wrap"><div class="prog-bar" id="prog-final"></div></div>
+  <div class="prog-lbl" id="prog-final-lbl">0 / 8 concluídos</div>
+  <div class="ck-list" id="ck-final">
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck-final','prog-final','prog-final-lbl')"><div class="ck-box">✓</div><div class="ck-text">Sei navegar pelo terminal Linux com <code>cd</code>, <code>ls</code>, <code>mkdir</code>, <code>touch</code></div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck-final','prog-final','prog-final-lbl')"><div class="ck-box">✓</div><div class="ck-text">Entendo os 3 estados do Git: modificado → preparado → consolidado</div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck-final','prog-final','prog-final-lbl')"><div class="ck-box">✓</div><div class="ck-text">Sei usar <code>git init</code>, <code>git add</code>, <code>git commit</code>, <code>git log</code></div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck-final','prog-final','prog-final-lbl')"><div class="ck-box">✓</div><div class="ck-text">Escrevi HTML com a estrutura básica do documento e tags de conteúdo</div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck-final','prog-final','prog-final-lbl')"><div class="ck-box">✓</div><div class="ck-text">Estilizei com CSS usando classes e entendi o box model</div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck-final','prog-final','prog-final-lbl')"><div class="ck-box">✓</div><div class="ck-text">Conectei repositório local ao GitHub (<code>git remote add</code>, <code>git push</code>)</div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck-final','prog-final','prog-final-lbl')"><div class="ck-box">✓</div><div class="ck-text">Trabalhei com branches e fiz um merge colaborativo</div></label>
+    <label class="ck"><input type="checkbox" onchange="updateProg('ck-final','prog-final','prog-final-lbl')"><div class="ck-box">✓</div><div class="ck-text">Meu portfólio está publicado e ao vivo no GitHub Pages! 🚀</div></label>
+  </div>
+
+  <h3 style="margin-top:36px">📚 Para continuar estudando</h3>
+  <div class="grid grid-3" style="margin-top:14px">
+    <div class="card">
+      <div class="card-icon">🎮</div>
+      <h3>learngitbranching.js.org</h3>
+      <p>Aprenda branches de forma visual e gamificada. O melhor recurso interativo para fixar Git.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">📘</div>
+      <h3>developer.mozilla.org (MDN)</h3>
+      <p>A documentação de referência definitiva para HTML e CSS. Sempre atualizada, sempre confiável.</p>
+    </div>
+    <div class="card">
+      <div class="card-icon">🎨</div>
+      <h3>web.dev — Google</h3>
+      <p>Guias práticos de HTML, CSS e boas práticas de desenvolvimento web escritos pela equipe do Chrome.</p>
+    </div>
+  </div>
+
+  <div class="callout" style="margin-top:28px">
+    <strong>Na próxima live aprofundamos:</strong><br/>
+    <span style="color:#8da0b8">HTML —</span> semântica (quando usar cada tag estrutural), metatags (charset, viewport, og:), SEO básico e multimídia: <code>&lt;img&gt;</code>, <code>&lt;video&gt;</code>, <code>&lt;audio&gt;</code> e <code>&lt;iframe&gt;</code>.<br/>
+    <span style="color:#8da0b8;display:inline-block;margin-top:6px">CSS —</span> <strong>Flexbox</strong> e <strong>Grid</strong> para layouts complexos, e <strong>media queries</strong> para tornar sua página responsiva em qualquer tela.<br/>
+    <span style="color:var(--accent);display:inline-block;margin-top:6px">Traga seu portfólio publicado — vamos evoluí-lo juntos!</span>
+  </div>
+</section>
+
+</div><!-- /wrap -->
+
+<footer>
+  <div class="wrap">
+    Padrões Web · Low-code &amp; No-code · Live 02 · UniFECAF &nbsp;·&nbsp;
+    <span style="color:var(--accent)">git</span> +
+    <span style="color:var(--amber)">html</span> +
+    <span style="color:var(--blue)">css</span> +
+    <span style="color:var(--orange)">github pages</span>
+  </div>
+</footer>
+
+<div id="toast">✓ Copiado!</div>
+
+<script>
+(function () {
+  'use strict';
+
+  /* ─────────────────────────────────────────
+     PAGE IDS — single source of truth
+  ───────────────────────────────────────── */
+  var PAGE_IDS = [
+    'abertura',
+    'ferramentas',
+    'linux',
+    'git-local',
+    'html-css',
+    'git-remoto',
+    'pages',
+    'duplas',
+    'desafio'
+  ];
+
+  var PAGE_LABELS = {
+    'abertura'   : '🎯 Introdução',
+    'ferramentas': '🛠️ Ferramentas',
+    'linux'      : '🐧 Linux',
+    'git-local'  : '🌿 Git Local',
+    'html-css'   : '🎨 HTML & CSS',
+    'git-remoto' : '☁️ Remoto & Branches',
+    'pages'      : '🌐 GitHub Pages',
+    'duplas'     : '👥 Prática em Duplas',
+    'desafio'    : '🏁 Desafio Final'
+  };
+
+  /* ─────────────────────────────────────────
+     CORE SHOW FUNCTION
+  ───────────────────────────────────────── */
+  function show(id) {
+    if (PAGE_IDS.indexOf(id) === -1) return;
+
+    /* hide all sections */
+    PAGE_IDS.forEach(function (pid) {
+      var sec = document.getElementById(pid);
+      if (sec) sec.classList.remove('active');
+    });
+
+    /* deactivate all tabs */
+    document.querySelectorAll('.tab').forEach(function (t) {
+      t.classList.remove('active');
+    });
+
+    /* activate target section */
+    var target = document.getElementById(id);
+    if (target) target.classList.add('active');
+
+    /* activate matching tab */
+    var matchTab = document.querySelector('.tab[data-tab="' + id + '"]');
+    if (matchTab) {
+      matchTab.classList.add('active');
+      /* scroll tab into view inside the nav-scroll */
+      matchTab.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    }
+
+    /* scroll page to top */
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  /* ─────────────────────────────────────────
+     INJECT PREV / NEXT BUTTONS
+  ───────────────────────────────────────── */
+  function buildPageNav() {
+    PAGE_IDS.forEach(function (id, idx) {
+      var sec = document.getElementById(id);
+      if (!sec) return;
+
+      var prevId   = idx > 0 ? PAGE_IDS[idx - 1] : null;
+      var nextId   = idx < PAGE_IDS.length - 1 ? PAGE_IDS[idx + 1] : null;
+      var prevLabel = prevId ? PAGE_LABELS[prevId] : '';
+      var nextLabel = nextId ? PAGE_LABELS[nextId] : '';
+
+      var nav = document.createElement('div');
+      nav.className = 'page-nav';
+
+      var prevBtn = document.createElement('button');
+      prevBtn.className = 'nav-btn prev';
+      prevBtn.innerHTML = prevId
+        ? '&#8592; ' + prevLabel
+        : '';
+      prevBtn.disabled = !prevId;
+      if (prevId) {
+        prevBtn.dataset.goto = prevId;
+      }
+
+      var pos = document.createElement('span');
+      pos.className = 'nav-pos';
+      pos.textContent = (idx + 1) + ' / ' + PAGE_IDS.length;
+
+      var nextBtn = document.createElement('button');
+      nextBtn.className = 'nav-btn next';
+      nextBtn.innerHTML = nextId
+        ? nextLabel + ' &#8594;'
+        : '✅ Concluído!';
+      nextBtn.disabled = !nextId;
+      if (nextId) {
+        nextBtn.dataset.goto = nextId;
+      }
+
+      nav.appendChild(prevBtn);
+      nav.appendChild(pos);
+      nav.appendChild(nextBtn);
+      sec.appendChild(nav);
+    });
+  }
+
+  /* ─────────────────────────────────────────
+     EVENT DELEGATION — single listener for everything
+  ───────────────────────────────────────── */
+  document.addEventListener('click', function (e) {
+    var el = e.target;
+
+    /* ── TAB clicks ── */
+    var tab = el.closest('.tab');
+    if (tab && tab.dataset.tab) {
+      show(tab.dataset.tab);
+      return;
+    }
+
+    /* ── PREV / NEXT button clicks ── */
+    var navBtn = el.closest('.nav-btn');
+    if (navBtn && navBtn.dataset.goto) {
+      show(navBtn.dataset.goto);
+      return;
+    }
+
+    /* ── ACCORDION head clicks ── */
+    var accHead = el.closest('[data-acc="toggle"]');
+    if (accHead) {
+      var acc = accHead.parentElement;
+      if (acc) acc.classList.toggle('open');
+      return;
+    }
+
+    /* ── GIT ANIMATION button clicks ── */
+    var gitBtn = el.closest('.git-btn[data-action]');
+    if (gitBtn) {
+      gsAnimate(gitBtn.dataset.action);
+      return;
+    }
+
+    /* ── TERMINAL command buttons ── */
+    var tcmd = el.closest('.tcmd[data-cmd]');
+    if (tcmd) {
+      runLinuxCmd(tcmd.dataset.cmd);
+      return;
+    }
+  });
+
+  /* ─────────────────────────────────────────
+     BOX MODEL HOVER — event delegation
+  ───────────────────────────────────────── */
+  document.addEventListener('mouseover', function (e) {
+    var item = e.target.closest('[data-bm]');
+    if (item) bmHover(item.dataset.bm);
+  });
+  document.addEventListener('mouseout', function (e) {
+    var item = e.target.closest('[data-bm]');
+    if (item) bmReset();
+  });
+
+  /* ─────────────────────────────────────────
+     GIT STATES ANIMATION
+  ───────────────────────────────────────── */
+  var gsExplains = {
+    work:   '📝 <strong>Você editou um arquivo.</strong> Ele entra no estado <em>Modificado</em> no Working Directory. O Git detecta a mudança, mas ainda não vai rastreá-la — ele está esperando você decidir o que fazer.',
+    add:    '📦 <code>git add .</code> — Você moveu as alterações para a <em>Staging Area</em> (área de preparação). É como separar os itens que vão na mochila antes de sair. Você decide <em>o que</em> vai entrar no próximo commit.',
+    commit: '🗄️ <code>git commit -m "mensagem"</code> — Uma fotografia (snapshot) do projeto é salva no <em>repositório local</em>. O Git cria um hash único (ex: <code>a3f9c12</code>) que identifica este momento para sempre.',
+    push:   '☁️ <code>git push origin main</code> — Seus commits locais são enviados para o <em>repositório remoto</em> no GitHub. Agora outras pessoas podem ver e baixar seu trabalho.',
+    pull:   '⬇️ <code>git pull</code> — Baixa as alterações do repositório remoto e já integra (merge) no seu working directory. Útil para se atualizar com o que o time publicou.',
+    reset:  '↩️ <code>git restore &lt;arquivo&gt;</code> descarta mudanças no working directory. <code>git reset HEAD &lt;arquivo&gt;</code> tira um arquivo do staging de volta para modificado. Ambos são reversíveis!'
+  };
+
+  function gsAnimate(action) {
+    var boxes   = ['gs-work', 'gs-stage', 'gs-repo', 'gs-remote'];
+    var arrows  = ['ga-add-up', 'ga-add-down', 'ga-commit-up', 'ga-commit-down', 'ga-push-up', 'ga-push-down'];
+    var classes = ['active-up', 'active-down', 'active-push', 'active-pull'];
+
+    boxes.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) el.classList.remove('active');
+    });
+    arrows.forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) classes.forEach(function (c) { el.classList.remove(c); });
+    });
+
+    var explainEl = document.getElementById('git-explain');
+    if (explainEl) explainEl.innerHTML = gsExplains[action] || '';
+
+    function box(id)   { var el = document.getElementById(id); if (el) el.classList.add('active'); }
+    function arrow(id, cls) { var el = document.getElementById(id); if (el) el.classList.add(cls); }
+
+    if (action === 'work')   { box('gs-work'); }
+    if (action === 'add')    { box('gs-work'); box('gs-stage');  arrow('ga-add-up',    'active-up'); }
+    if (action === 'commit') { box('gs-stage'); box('gs-repo');  arrow('ga-commit-up', 'active-up'); }
+    if (action === 'push')   { box('gs-repo'); box('gs-remote'); arrow('ga-push-up',   'active-push'); }
+    if (action === 'pull')   {
+      box('gs-remote'); box('gs-work');
+      arrow('ga-push-down',   'active-pull');
+      arrow('ga-commit-down', 'active-pull');
+      arrow('ga-add-down',    'active-pull');
+    }
+    if (action === 'reset')  { box('gs-stage'); box('gs-work'); arrow('ga-add-down', 'active-down'); }
+  }
+
+  /* ─────────────────────────────────────────
+     LINUX COMMANDS DATA
+  ───────────────────────────────────────── */
+  var linuxCmds = [
+    { cmd: 'pwd',        desc: 'Mostra o diretório atual (Print Working Directory)',    ex: 'pwd',                     cat: 'navegação' },
+    { cmd: 'ls',         desc: 'Lista arquivos e pastas do diretório atual',             ex: 'ls -la',                  cat: 'navegação' },
+    { cmd: 'cd',         desc: 'Navega para outro diretório (Change Directory)',         ex: 'cd projetos/',            cat: 'navegação' },
+    { cmd: 'cd ..',      desc: 'Volta um nível na hierarquia de pastas',                ex: 'cd ..',                   cat: 'navegação' },
+    { cmd: 'mkdir',      desc: 'Cria uma nova pasta',                                    ex: 'mkdir portfolio-card',    cat: 'arquivos' },
+    { cmd: 'touch',      desc: 'Cria um arquivo vazio',                                  ex: 'touch index.html',        cat: 'arquivos' },
+    { cmd: 'cat',        desc: 'Exibe o conteúdo de um arquivo no terminal',            ex: 'cat style.css',           cat: 'arquivos' },
+    { cmd: 'cp',         desc: 'Copia um arquivo ou pasta',                              ex: 'cp index.html backup.html', cat: 'arquivos' },
+    { cmd: 'mv',         desc: 'Move ou renomeia arquivo/pasta',                         ex: 'mv index.html src/',      cat: 'arquivos' },
+    { cmd: 'rm',         desc: 'Remove um arquivo (CUIDADO: sem lixeira!)',              ex: 'rm arquivo.txt',          cat: 'arquivos' },
+    { cmd: 'rm -rf',     desc: 'Remove pasta e todo seu conteúdo recursivamente',        ex: 'rm -rf pasta/',           cat: 'arquivos' },
+    { cmd: 'code .',     desc: 'Abre o VS Code na pasta atual',                          ex: 'code .',                  cat: 'ferramentas' },
+    { cmd: 'clear',      desc: 'Limpa a tela do terminal',                               ex: 'clear',                   cat: 'terminal' },
+    { cmd: 'echo',       desc: 'Imprime texto no terminal',                              ex: 'echo "Olá, mundo!"',      cat: 'terminal' },
+    { cmd: 'history',    desc: 'Mostra o histórico de comandos usados',                  ex: 'history | tail -20',      cat: 'terminal' },
+    { cmd: 'man',        desc: 'Exibe o manual de um comando',                           ex: 'man ls',                  cat: 'terminal' },
+    { cmd: 'grep',       desc: 'Busca texto dentro de arquivos',                         ex: 'grep "color" style.css',  cat: 'busca' },
+    { cmd: 'find',       desc: 'Localiza arquivos por nome ou tipo',                     ex: 'find . -name "*.html"',   cat: 'busca' },
+    { cmd: 'chmod',      desc: 'Altera as permissões de um arquivo',                     ex: 'chmod +x script.sh',      cat: 'permissões' },
+    { cmd: 'sudo',       desc: 'Executa comando como superusuário (root)',                ex: 'sudo apt install git',    cat: 'sistema' }
+  ];
+
+  var linuxOutputs = {
+    'pwd':                   { out: '/home/aluno/projetos', type: 'ok',   info: 'Retorna o caminho absoluto do diretório onde você está agora.' },
+    'ls':                    { out: 'index.html  style.css  README.md', type: 'ok', info: 'Lista os arquivos. Use -la para ver ocultos e permissões.' },
+    'ls -la':                { out: 'drwxr-xr-x  aluno  .git/\n-rw-r--r--  aluno  index.html\n-rw-r--r--  aluno  style.css', type: 'ok', info: '-l mostra permissões e datas. -a mostra ocultos (começam com .).' },
+    'cd ..':                 { out: '', type: 'ok', info: 'Subiu um nível. O prompt muda para refletir o novo diretório.' },
+    'mkdir portfolio-card':  { out: '', type: 'ok', info: 'Pasta portfolio-card criada. Use cd portfolio-card para entrar.' },
+    'touch index.html':      { out: '', type: 'ok', info: 'Arquivo index.html criado (vazio). Abra no VS Code: code .' },
+    'cat style.css':         { out: 'body {\n  background: #f0f4f8;\n  font-family: sans-serif;\n}', type: 'ok', info: 'Exibiu o conteúdo do arquivo diretamente no terminal.' },
+    'clear':                 { out: '[tela limpa]', type: 'warn', info: 'Limpa o terminal. O histórico ainda existe — use ↑ para navegar.' },
+    'history':               { out: '  241  git init\n  242  git add .\n  243  git commit -m "feat: inicial"\n  244  git push origin main', type: 'ok', info: 'Últimos comandos usados. Útil para copiar comandos longos.' },
+    'code .':                { out: '[VS Code abre na pasta atual]', type: 'ok', info: 'Abre o VS Code no diretório atual. Substitui navegar pelo explorador.' },
+    'git --version':         { out: 'git version 2.43.0', type: 'ok', info: 'Git instalado e funcionando!' },
+    'git status':            { out: 'On branch main\nChanges not staged for commit:\n\tmodified: index.html\n\nno changes added to commit', type: 'warn', info: 'Arquivo modificado mas não no staging. Use git add.' },
+    'git log --oneline':     { out: 'a3f9c12 (HEAD -> main) feat: adiciona seção de habilidades\nd2e7b1a feat: estrutura inicial', type: 'ok', info: 'Histórico compacto. Cada linha = uma versão do projeto.' }
+  };
+
+  function buildLinuxTable() {
+    var tbody = document.getElementById('linux-tbody');
+    if (!tbody) return;
+    linuxCmds.forEach(function (c) {
+      var tr = document.createElement('tr');
+      tr.className = 'linux-row visible';
+      tr.dataset.search = (c.cmd + ' ' + c.desc + ' ' + c.ex + ' ' + c.cat).toLowerCase();
+      tr.innerHTML =
+        '<td><code>' + c.cmd + '</code> <span class="badge badge-linux">' + c.cat + '</span></td>' +
+        '<td style="color:#8da0b8;font-size:.83rem">' + c.desc + '</td>' +
+        '<td><code style="color:var(--blue)">' + c.ex + '</code></td>';
+      tbody.appendChild(tr);
+    });
+  }
+
+  function buildLinuxBtns() {
+    var container = document.getElementById('linux-btns');
+    if (!container) return;
+    var shortcuts = [
+      'pwd', 'ls -la', 'mkdir portfolio-card', 'touch index.html',
+      'cat style.css', 'clear', 'history',
+      'git --version', 'git status', 'git log --oneline', 'code .'
+    ];
+    shortcuts.forEach(function (cmd) {
+      var btn = document.createElement('button');
+      btn.className = 'tcmd';
+      btn.textContent = cmd;
+      btn.dataset.cmd = cmd;
+      container.appendChild(btn);
+    });
+  }
+
+  function runLinuxCmd(cmd) {
+    var term = document.getElementById('linux-term');
+    if (!term) return;
+    var data = linuxOutputs[cmd] || null;
+    var html = '<div class="term-line" style="margin-top:8px">'
+      + '<span class="prompt">aluno@linux:~/projetos$</span>'
+      + ' <span class="cmd">' + escHtml(cmd) + '</span></div>';
+    if (data) {
+      var cls = data.type === 'ok' ? 'out-ok' : (data.type === 'err' ? 'out-err' : 'out-warn');
+      if (data.out) {
+        html += '<div class="term-line"><span class="' + cls + '">'
+          + escHtml(data.out).replace(/\n/g, '<br>') + '</span></div>';
+      }
+      html += '<div class="term-line"><span class="output" style="color:var(--muted);font-size:11px">ℹ ' + data.info + '</span></div>';
+    } else {
+      html += '<div class="term-line"><span class="out-warn">bash: '
+        + escHtml(cmd.split(' ')[0]) + ': command output simulated</span></div>';
+    }
+    term.innerHTML += html;
+    term.scrollTop = term.scrollHeight;
+  }
+
+  function escHtml(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* ─────────────────────────────────────────
+     TERMINAL INPUT (Enter key)
+  ───────────────────────────────────────── */
+  function bindTerminalInput() {
+    var inp = document.getElementById('linux-input');
+    if (!inp) return;
+    inp.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') {
+        var cmd = this.value.trim();
+        if (cmd) { runLinuxCmd(cmd); this.value = ''; }
+      }
+    });
+  }
+
+  /* ─────────────────────────────────────────
+     LINUX TABLE FILTER
+  ───────────────────────────────────────── */
+  function bindLinuxFilter() {
+    var inp = document.getElementById('linux-filter');
+    if (!inp) return;
+    inp.addEventListener('input', function () {
+      var q = this.value.toLowerCase();
+      document.querySelectorAll('.linux-row').forEach(function (row) {
+        var match = !q || row.dataset.search.indexOf(q) !== -1;
+        row.classList.toggle('visible', match);
+      });
+    });
+  }
+
+  /* ─────────────────────────────────────────
+     BOX MODEL HOVER
+  ───────────────────────────────────────── */
+  var bmLabels = {
+    margin:  '⬛ margin — espaço externo à borda. Não tem cor de fundo.',
+    border:  '🟪 border — a borda visível do elemento.',
+    padding: '🟦 padding — espaço interno à borda. Tem a cor de fundo.',
+    content: '🟩 content — onde fica o texto, imagem, etc.'
+  };
+
+  function bmHover(layer) {
+    var lbl = document.getElementById('bm-layer-label');
+    if (lbl) lbl.textContent = bmLabels[layer] || '';
+    ['margin','border','padding','content'].forEach(function (l) {
+      var el = document.getElementById('bm-' + l);
+      if (el) el.style.outline = l === layer ? '2px solid var(--accent)' : '';
+    });
+  }
+
+  function bmReset() {
+    var lbl = document.getElementById('bm-layer-label');
+    if (lbl) lbl.textContent = 'Passe o mouse nas camadas →';
+    ['margin','border','padding','content'].forEach(function (l) {
+      var el = document.getElementById('bm-' + l);
+      if (el) el.style.outline = '';
+    });
+  }
+
+  /* ─────────────────────────────────────────
+     CHECKLIST PROGRESS
+  ───────────────────────────────────────── */
+  function updateProg(listId, barId, lblId) {
+    var items = document.querySelectorAll('#' + listId + ' .ck input[type=checkbox]');
+    var total = items.length, done = 0;
+    items.forEach(function (inp) { if (inp.checked) done++; });
+    var pct = total ? (done / total * 100) : 0;
+    var bar = document.getElementById(barId);
+    var lbl = document.getElementById(lblId);
+    if (bar) bar.style.width = pct + '%';
+    if (lbl) lbl.textContent = done + ' / ' + total + ' concluídos';
+    if (done === total && total > 0) showToast('✅ Fase concluída! Bom trabalho!');
+  }
+
+  /* make updateProg globally accessible (called via onchange on checkboxes) */
+  window.updateProg = updateProg;
+
+  /* ─────────────────────────────────────────
+     TOAST
+  ───────────────────────────────────────── */
+  function showToast(msg) {
+    var t = document.getElementById('toast');
+    if (!t) return;
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function () { t.classList.remove('show'); }, 3000);
+  }
+
+  /* ─────────────────────────────────────────
+     INIT — runs after DOM is ready
+  ───────────────────────────────────────── */
+  function init() {
+    buildPageNav();
+    buildLinuxTable();
+    buildLinuxBtns();
+    bindTerminalInput();
+    bindLinuxFilter();
+
+    /* ensure first tab is shown */
+    show('abertura');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+}());
+</script>
+</body>
+</html>
